@@ -1,0 +1,962 @@
+RECOMBINE -- Metropolis-Hastings Markov Chain Monte Carlo genealogy
+sampler
+
+For use in cases with recombination, but without
+migration, selection or variable population size.
+
+Version 1.41, August 2002
+
+This docoment contains:
+0.  Noteworthy changes to this version
+1.  Description of RECOMBINE
+2.  Compiling the program
+3.  Input files
+4.  Menus
+5.  Output files
+6.  Program constants
+7.  Parameter file
+8.  Heating
+9.  Haplotyping
+10. Time and Space
+11. Past, future and credits
+12. Distribution
+13. References
+14. Sample case
+
+Troubleshooting advice is in a separate file, rec_errors.doc.
+
+0.  NOTEWORTHY CHANGES
+
+This version of RECOMBINE provides correct support for SNP data (previous
+versions claimed to do so, but they lied.)  It implements heated chains
+to improve mixing.  It can estimate parameters in the face of
+uncertainty about the haplotypes.  Several bugs, most of them
+operating-system specific, have been fixed.
+
+1.  DESCRIPTION OF RECOMBINE
+
+This program takes as input a set of aligned DNA or RNA sequences
+from different individuals in a population and uses them to make maximum 
+likelihood estimates of the parameter "Theta" and "r", using the method 
+described in Kuhner et al. (in prep).  In a diploid organism Theta is
+4Ne*mu, four times the effective population size (Ne) times the neutral
+mutation rate per site per generation (mu).  In a haploid it is 2Ne*mu.
+**Note that this is mutation rate per site, not per locus.**
+The parameter r is rho/mu, where rho is the rate of recombinations per
+inter-site link (hereafter just "link") per generation.  The r parameter
+can be interpreted as the ratio of the per-site chance of recombination
+to the per-site chance of mutation.
+
+RECOMBINE assumes that the loci sampled are constant in size
+through time and are unaffected by selection.  If these assumptions
+are violated the results may be erroneous.  The algorithm begins with
+a genealogy for the sequences and sequentially makes modifications in
+it, accepting or rejecting the modifications based on the sequence data,
+and sampling the current genealogy at intervals.  From the sampled
+genealogies it constructs a likelihood curve and maximum likelihood
+estimates for Theta and r.  The aim is to preferentially sample those
+genealogies which can contribute substantial information to the estimates,
+avoiding the myriads of possible but unlikely and thus uninformative 
+genealogies.  If multiple loci are analyzed, the likelihoods will be
+summed to provide an overall curve and estimate.
+
+The basic unit of progress of the program is a "step"--one proposed
+change to the genealogy, which may be accepted or rejected.  A continuous 
+series of steps, all using the same parameter values, is a "chain".  
+
+To interpret the results it will be necessary to consider them
+together.  This approach has no way to distinguish effects due to Ne 
+from effects due to mu, but if you know mu you can estimate Ne 
+(or vice versa).  For example, if the output Theta is 0.01 and 
+you are willing to assume that mu is 1x10e-6 per site per
+generation, Ne is approximately 2,500.  Please consult our paper (Kuhner 
+et al., Genetics 2000) for more details on interpreting the results.
+
+
+2.  COMPILING THE PROGRAM
+
+RECOMBINE is written in ANSI C.  For UNIX systems a Makefile is 
+provided, and the program can be compiled by typing simply "make 
+recombine".  Users of other operating systems will need to use the 
+appropriate commands to link in the math library and header files.
+
+You may need to allocate additional heap or stack space when
+compiling this program as it uses an enormous amount of space,
+especially with large numbers of sequences.
+
+We have successfully compiled and run RECOMBINE on a DECstation under
+Ultrix 4.2 (using both cc and GNU's gcc compiler), on a DEC Alpha under
+OSF1 and Tru64, on a PowerPC using MetroWerks, on a Pentium PC under Linux 
+using gcc and under Windows95 using Watcom C.  Space generally appears to be 
+the limiting factor.  We have heard reports of successful use of another
+member of the package, COALESCE, on VMS using DECC.
+
+The C compiler provided as cc on older Suns will not compile RECOMBINE
+(it rejects ANSI standard code).  We recommend obtaining gcc (GNU C), 
+which is free and works very well.
+
+C++ compilers should also be able to compile RECOMBINE successfully;
+we have avoided use of C++ reserved words.  It's an open question 
+whether the resulting code will be slower than a plain C compile.
+
+
+3.  INPUT FILES
+
+RECOMBINE can currently work on two types of input data:  regular
+nucleotide sequences and ordered SNPs (single nucleotide polymorphisms).
+It is important to tell the program which type of data it is getting,
+as SNPs are much more polymorphic than plain sequences and mislabelling
+SNPs as plain sequence will lead to a severe overestimate of Theta.  
+
+To use SNP data it is necessary to provide a file, "spacefile", giving
+the distances from one SNP to the next.  This can also be done with
+plain sequence data (for example, if you sequenced two exons you will
+want to use a spacefile to indicate the length of the intron between
+them). 
+
+Minimum input for RECOMBINE is a single file, "infile", containing the
+aligned sequences.  The four other input files, "intree", "parmfile",
+"seedfile" and "spacefile" are optional--the program will use them if they 
+are present, but does not require them.
+
+A.  "infile"
+
+RECOMBINE expects as input a file named "infile" containing aligned 
+nucleotide or SNP sequences in one of two formats:  interleaved (first
+line of all sequences, second line of all sequences, etc.) or sequential (all 
+of sequence 1, then all of sequence 2, etc.).
+
+The input file for RECOMBINE is different from its predecessors
+COALESCE and FLUCTUATE because we have added support for multiple
+populations, with the aim of eventually combining this program with
+MIGRATE.  COALESCE/FLUCTUATE input files can be converted easily by
+making a few changes to the header.
+
+The first line of the file contains in order:
+
+--an optional single character denoting the type of the data
+--the number of populations represented in the data
+--the number of loci within each population, constant across all
+populations
+--the title of the dataset as a whole
+
+The second line contains one number for each locus indicating
+the number of bases present in each sequence of that locus (the
+first number should be the number of bases in the first locus, etc.)
+For SNP data, the number is the number of SNP sites.
+
+After the header, the populations are presented one at a time, 
+each introduced by a single line which gives the constant number of
+sequences for each locus of the population; and the subtitle (if any)
+of the population's data.  After that, the sequences for that
+population are presented, grouped by locus.  There is no requirement
+that each locus contain sequences from the same individuals.
+
+Each sequence *must* have a ten character name (padded out with 
+blanks if necessary) and these names must match the names in the tree 
+for the locus, if a tree is provided. 
+
+Sequences may contain blanks, but may not end with blanks, and
+blank cannot be used to indicate a deletion (use X, N or ? instead).
+The standard ambiguity symbols are available.  RNA and DNA are both
+accepted.
+
+B.  "intree"
+
+If the user wishes to provide start genealogies for RECOMBINE, they
+should be placed in the file "intree" in standard format (see sample
+files).  Each input tree must have clocklike branch lengths, and its
+sequence names must be identical to those used in "infile".  The first
+input tree will be used for the first locus, and so on.  RECOMBINE
+can construct its own starting genealogy, but does so in a very
+arbitrary way:  results may be improved by providing a reasonable
+starting genealogy such as a UPGMA tree of the sequences.
+
+There is currently no way to input recombinant genealogies.
+
+C.  "parmfile"
+
+To reduce the number of menu options that have to be set each run,
+the user can create a file "parmfile" giving defaults for the menu
+settings.  The parmfile is discussed in more length in section 7, since
+it is not required to run the program.
+ 
+D.  "seedfile"
+
+Normally RECOMBINE prompts for a random number seed at the beginning
+of each run, but if "seedfile" is present it will be used instead.  The
+file should contain a single integer number of the form 4n+1 (that is,
+one greater than a multiple of four).  RECOMBINE does not update this
+file.  Successive runs with the same settings, data and seedfile should
+produce absolutely identical results (if they do not, please let us know!)
+
+E.  "spacefile"
+
+This file specifices the distance between each pair of adjacent
+sites (we associate the distance with the site to its left).  If it is
+not present, all distances will be taken as 1.0.  The first line of
+"spacefile" should contain a count of the number of sites for which
+distances will be provided, immediately followed by a delimiter 
+character to use in dividing sites from distances.  Each subsequent 
+line should follow the format of:
+
+[site number][delimiter][distance from that site to the next]
+
+for example:
+
+1#50.0 
+
+says that the distance between site 1 and site 2 is 50 units.  (Sites
+are numbered starting with 1.)  Sites for which the distance is 1.0
+can be omitted.  The spacefile is essential for SNP data but can also
+be used with regular DNA data to indicate unsequenced regions.
+
+F. "flipfile"
+
+This file is used only when phase is unknown for some sites, and
+indicates which sites should be treated as unknown.  It is discussed
+in more detail under Haplotyping below.
+
+4.  MENUS
+
+A sample menu pair (entries bracketed by parantheses may or may not
+appear depending on the settings of other entries).
+
+--
+
+Metropolis-Hastings Markov Chain Monte Carlo method, version 1.40
+
+STARTUP MENU
+  #               Goto Data/Search Menus
+  O         Save current options to file?  No
+  N          Use trees from previous run?  No
+  E        Echo the data at start of run?  No
+  S            Save MHMC output to files?  No
+  P Print indications of progress of run?  Yes
+  U      Use user tree in file "intree" ?  No
+  V          Number of temperatures used?  1
+  H                     Infer haplotypes?  No
+  L       Calculate confidence intervals?  Yes
+
+Are these settings correct? (type Y or the letter for one to change)
+
+--
+
+DATA MENU
+  #                     Goto Startup Menu
+  D                             Datatype:  Sequence
+  I          Input sequences interleaved?  No, sequential
+  T        Transition/transversion ratio:    2.0000
+  F       Use empirical base frequencies?  Yes
+  C   One category of substitution rates?  Yes
+  V    Poplulation size equal among loci?  Yes
+SEARCH MENU
+  Q      Lots of recombinations expected?  No
+  H                Hold parameters fixed?  No
+  W      Starting theta equals Watterson?  No, initial theta = 1.0000
+  Z          Starting recombination rate:  1.000000e-04
+  S               Number of short chains?      10
+  1             Short sampling increment?      20
+  2   Number of steps along short chains?     200
+  L                Number of long chains?       2
+  3              Long sampling increment?      20
+  4    Number of steps along long chains?   20000
+
+Are these settings correct? (type Y or the letter for one to change)
+
+--
+ 
+Unless a file "seedfile" is present, the program will prompt for a
+random number seed before displaying the menu.  The random number
+generator used is deterministic, so two runs with the same seed and
+parameters will be identical.  Seeds should be positive integers.
+If "seedfile" exists the program will read its seed from that file and
+will not prompt for one.  RECOMBINE does not write out a changed
+seed to the file.
+
+Options which take "Yes" or "No" as a value, will also take
+respectively "True" or "False".
+
+A.  STARTUP MENU
+
+The # option takes you to the Data and Search menus.
+
+The O option allows the user to save the current set of options
+into the parmfile (overwriting whatever is currently in there).
+Subsequent runs of RECOMBINE will then use the saved set of options as
+the default initialization.  (Exception: the "O" option itself is not
+saved and will always default to No.)
+
+The N option controls whether RECOMBINE should read in new data
+and perform a MHMC run, or simply take the MHMC output from a previous
+run of RECOMBINE (one which had the MHMC output save option set to "Yes")
+and use that.
+
+The E option echoes the input data to the output file, which
+may be useful if you are wondering whether RECOMBINE is reading
+it correctly.
+
+The S option controls whether the program will save its MHMC ouput
+to file.  If the option is set to "Yes" the program will overwrite
+previously saved output unless other action is taken to preserve it.
+Unix users may store and retrieve the saved data with the shell scripts
+"savedata" and "getdata" respectively.  For other users, the program
+writes to and reads from the files named: "actives", "ends", "kks", 
+"numcoals", "numrecombs", and "starts" for purposes of reading and
+saving MHMC output.  This is useful if the user wishes to make one
+set of trees and then evaluate it under different circumstances.
+
+The P option causes progress reports to be displayed on the
+screen.  It will also cause each table to be displayed for your
+approval before being printed, so that you can choose more
+appropriate values for Theta and r.  WARNING:  if you choose
+this option the program will stop and wait for approval at the
+end of each locus and again for the multilocus estimate.  If you 
+plan to walk away and let the program run, this can be a nuisance.
+
+The U option determines whether RECOMBINE generates its own initial 
+tree to start the Metropolis-Hastings process or uses a tree from the 
+file "intree".  The tree generated by RECOMBINE simply strings together all
+sequences in the order they are found in the input file, and will
+generally be an extremely poor one.  We do not recommend using it;
+results will be better with a reasonable starting tree such as a UPGMA
+tree.  RECOMBINE can currently only read non-recombinant trees, but a
+good non-recombinant tree is a better starting point than a bad one.
+
+The V option controls heating.  If more than one temperature is 
+specified, an additional menu line for specifying temperatures
+will appear.  See the section on heating for more details.
+
+The H option controls haplotyping; see the section on
+haplotyping for more details.
+
+B.  DATA MENU
+
+Sequence (DNA or RNA) data options:
+
+The I option controls whether the input sequences are in interleaved or
+sequential format (see Input Formats).  
+
+T controls the ratio of transitions to transversions; a ratio of 2.0
+means that transitions are twice as likely as transversions.  Due to a
+limitation of the model used, a transition/transversion ratio of 0.5
+(corresponding to no preference for transitions) will cause an error.
+If you wish to test this case, set the T ratio to 0.50001.  Due to
+constraints of the model, there is no way to deal with a ratio less 
+than 0.5 (preference for transversions).
+
+The F option determines whether the base frequencies are estimated from
+the data or input by the user.  If it is toggled to allow user input,
+the program will prompt for base frequencies:  these should be entered
+on one line separated by blanks.  They should be positive fractions
+summing to 1.0.  The program will not work correctly if any frequency
+is 0; if you wish to run it with data in which one or more nucleotides
+do not occur you must use the F option to set frequencies, and set the 
+frequency of the missing base(s) to a very low value.  You should also
+set the transition/transversion ratio very high to reflect the presumed 
+lack of transversions.  For example, if you wish to run a data set 
+containing only purines, you can use the F option to set the frequencies of 
+the purines A and G to 0.49 and the frequencies of the (absent)
+pyrimidines C and T to 0.01, and use the T option to set the transition/
+transversion ratio to 100.0.  The program will then run correctly.  This
+approach may be useful when you have reason to expect that the neutral
+mutation rate is substantially different between purines and
+pyrimidines, and therefore wish to treat them as two separate data
+sets.
+
+The C (categories) option allows the user to specify how many categories
+of substitution rates there will be, and what are the rates and probabilities
+for each. The user first is asked how many categories there will be (for the
+moment there is an upper limit of 5, which may be restrictive). Then the
+program asks for the rates for each category.  The final value of Theta will
+be in relation to a rate of 1, whether or not you specify an actual class with
+that rate--in other words, if you say that some sites have rate 1.0 and some
+sites have rate 5.0, the value of Theta produced will be the value appropriate
+for the sites of rate 1.0.  Note that a category can have rate of
+change 0, so that this allows us to take into account that there may be a
+category of sites that are invariant.  The run time of the program
+will be proportional to the number of rate categories: twice as many categories
+means twice as long a run. Finally the program will ask for the probabilities
+of a random site falling into each of these categories. These probabilities
+must be nonnegative and sum to 1. Default for the program is one category,
+with rate 1.0 and probability 1.0.
+
+If more than one category is specified, then another option, R, becomes
+visible in the menu. This allows you to specify that you want to assume that
+sites that have the same rate category are expected to be clustered. The
+program asks for the value of the average patch length. This is an expected
+length of patches that have the same rate.  If it is 1, the rates of successive
+sites  will be independent.  If it is, say, 10.25, then the chance of change to
+a new rate will be 1/10.25 after every site. However the "new rate" is
+randomly drawn from the mix of rates, and hence could even be the same. So the
+actual observed length of patches with the same rate will be somewhat larger
+than 10.25.
+
+The V option allows you to specify ratios amongst the different
+loci's thetas.  These ratios can be any positive value and would be
+used to designate differing sizes or mutation rates amongst loci.
+Currently, all populations are assumed to have the same ratios
+amongst loci.  If you specify different ratios, the overall estimate
+of Theta will be scaled to a ratio of 1, whether or not any locus
+actually has that ratio.
+
+An example:  if you have one nuclear and one mtDNA locus, they can be
+combined by setting the ratio of the nuclear locus as 1 and the ratio
+of the mtDNA locus as 0.25 (since it has a population size only 1/4
+that of a nuclear locus).  The resulting estimate of Theta will be
+relative to the nuclear locus, since that was specified as 1.
+Alternatively, you could set the ratio of the nuclear locus as 4
+and the mtDNA locus as 1, obtaining a result scaled to the mtDNA
+locus (i.e. an estimate of 2Nf(mu) rather than 4N(mu)).
+
+SNP (Single Nucleotide Polymorphism) options:
+
+SNP data uses the same DNA likelihood model as full sequence data, but
+has some additional options.  Specifically, you must tell the program how
+you chose SNPs for your data set:  were they determined by sequencing your
+actual sample and reporting all variable sites, or were they determined based
+on a previously-sequenced panel?   The P option toggles between panel and
+non-panel SNPs.  If panel SNPs are chosen, you will be prompted for the number
+of haplotypes in the panel.  Please do not misrepresent this number:  claiming
+that SNPs were derived from your sample when they were derived from a panel,
+or that they were derived from a large panel when in fact they were derived from
+a small one, will seriously distort your results. 
+
+If you claim that your data was generated by choosing SNPs based on your
+sample, the program will silently disregard any invariant sites it encounters
+(the SNPs-from-sample model does not accomodate such sites).
+
+We provide two models for analysis of SNPs.  The "conditional
+likelihood" method makes no assumptions that we know the number of
+sites which were *not* sampled as SNPs.  It is quicker than the
+other model, but it cannot be used in cases where recombination is
+being inferred.  If you are using the menu and you select the
+conditional likelihood method while trying to infer recombination,
+you will receive an error message and a chance to change your 
+settings.  If you are running in batch mode with a parmfile, the
+program will halt when it encounters this combination.  This option
+can be chosen by selecting "No" on option N of the data menu ("SNPs
+with recombination?")
+
+The "reconstituted DNA" method requires knowledge of the
+number of sites not sampled as SNPs, and, if recombination is to
+be inferred, the locations of these sites (i.e. a complete map
+of the region showing where the sequenced SNPs are located).  It
+is slower than the conditional likelihood method but more accurate
+and more generally applicable.  It can be used when inferring
+recombination.  Recombine will use the reconstituted DNA model
+by default, and we recommend its use; the other method is useful
+only in restricted situations where an estimate of Theta is wanted,
+but no information other than the SNPs themselves is available.
+This option is chosen by answering "Yes" to option N of the data
+menu.
+
+For both models, many of the options for DNA data are retained:
+transition/transversion ratio, nucleotide frequencies, and rate
+categories.  However, autocorrelation cannot be used with either
+SNP model.  (In theory it could be used with the reconstituted
+DNA model, but we have not implemented this.  The practical
+advantage would be small, since SNPs are usually well
+spaced and autocorrelation between SNPs is therefore expected
+to be weak.)
+
+C.  SEARCH MENU
+
+     The Q option allows you to choose among two tree-rearrangement strategies,
+which we call "final-coalescence" and "normal".  The normal strategy is much
+quicker, but when many recombinations are apparent in the data it may generate
+so many recombinations that the upper limit is reached, leading to an inaccurate
+estimate.  (The upper limit can be raised by modifying the constants.h file and
+recompiling, but this risks running out of computer memory.)  The
+final-coalescence strategy avoids putting in some classes of "uninteresting"
+recombinations and can function successfully on highly recombinant data;
+however, it is much slower.  If you find that you are getting warnings about
+"maximum number of recombinations reached" when running on normal strategy, 
+consider switching to final-coalescence.
+
+The H option allows you to hold one of the parameters (Theta, r)
+constant throughout the current program run.  Repeated choosing of this
+option cycles among the 3 possible settings: No; Yes, theta fixed; and
+Yes, recombination rate fixed.
+
+The W option allows you to use an estimate of Theta by the method of
+Watterson (1975) as the initial Theta0, or provide your own.  Our
+implementation of Watterson's test counts sites with 3 different
+nucleotides as 2 changes and sites with 4 different nucleotides as 3
+changes, and will therefore produce a slightly higher estimate than 
+the alternative method of counting each variable site as 1 change.
+
+The Z option allows you to specify an initial estimate of r0.  Do not
+use zero; this will simply waste the first chain (a chain run with r0=0
+will always return r=0).  If you expect that the value is zero, use a low
+non-zero value.  Very high values of r0 (greater than 1) may lead to the
+initial chains running very slowly and should be avoided.
+
+RECOMBINE is somewhat sensitive to the initial values of Theta0 and
+r0.  The best strategy for overcoming this sensitivity is to
+run several short chains to get good working values of the parameters, then 
+one or more long chains to refine the estimates.  The final curve and 
+point estimates of Theta and r are based on the final long chain only.
+
+If you wish to run only one chain, use the long chain settings and set
+the number of short chains to 0.  We don't recommend this procedure as
+it is sensitive to the choice of initial tree and initial parameters.
+
+The sampling increment options (1 and 3) control how often trees are
+saved for use in making the estimates of Theta and r.  If you are simply
+trying to estimate parameters, it is most efficient to sample as often as 
+you can afford to (but beware:  sampled trees take up space, and space can 
+be limiting for this program).  RECOMBINE cannot currently write out
+its sampled tree set in a way that can be easily utilized for many
+purposes (for example, as a bootstrap set).
+
+The number of steps options (2 and 4) control how many genealogies are
+tried.  For efficiency these should always be multiples of the sampling
+increment (otherwise some genealogies are wasted since they occur 
+after the last sample is taken).  RECOMBINE does not deal well with 
+very short chains.  Chains should be at least several thousand steps 
+long, and if the data set is either (a) sparse (few sites) or (b) highly 
+variable (proportion of variable sites is large) the chains need to be 
+longer.
+
+5.  OUTPUT FILES
+
+Results of the run are found in a file named "outfile".  After some
+information summarizing the parameters under which the run was made, 
+the program estimates the maximum of the likelihood curve, which is a 
+maximum likelihood estimate of Theta and r.  It prints a table of log
+likelihood values for an assortment of Theta and r values, which may
+help in visualizing the curve.  (If the Progress option is chosen, the
+user will have a chance to choose the range which this table will cover
+after examining its results.)
+
+The last entry for each locus is a rough ASCII plot of the shape
+of the likelihood surface.  Note that the maximum shown is the maximum
+of all values displayed in the table:  if the true maximum is outside
+the bounds of the table, a maximum will still be indicated at the
+highest point within the graph.
+
+If more than one locus was analyzed, there will also be an overall
+point estimate.  This estimate will be meaningful only if the neutral 
+mutation rate and population size for each locus has been properly
+accounted for at program start with the V option.  Beware of, for
+example, mixing nuclear and mitochondrial loci without notifying the
+program that they have different population sizes.
+
+
+6.  CONSTANTS
+  
+In the header file constants.h are several parameters which users may 
+occasionally wish to change.  Note: the program must be recompiled in order 
+to reflect any changes made to "constants.h".  Unix users can use the 
+Makefile command "make clean" to insure that the program recompiles all
+of its files.
+
+A brief explanation of the constants:
+
+NMLNGTH       length of sequence names.  All names must be padded out
+              to this length with blanks, or truncated to fit.
+ITERS         how long to iterate the point estimate of Theta.  Increasing
+              this may gain precision at the cost of runtime.
+REC_THRESHOLD constant used to prevent the value of r from becoming too
+              low.  The program can become attracted to the value r=0,
+              since once r is close to zero no recombinations will be
+              sampled, which will make the next estimate of r even closer
+              to zero, and so forth.  To combat this, we reset r higher
+              if it becomes very low.  The constant used is very approximately
+              the desired mean number of recombinations per tree.
+RECOMB_MAX    maximum number of recombinations allowed in a single
+              tree.  Raising or lowering this number will affect the
+              number of "dropped" trees per chain (which should ideally
+              be close to zero).  The number of "dropped" trees should
+              total no more than 10% of the proposed trees per chain.
+              Raising RECOMB_MAX will lower the number of "drops" at
+              a substantial cost in runtime.
+DISTRIBUTION  whether a summary table from the last chain of number of
+              recombinations present should be printed into the
+              "outfile".
+epsilon       how much accuracy to demand in estimates.  Increasing this
+              will lead to more digits of precision at the cost of
+              runtime.
+EXPMIN        the largest number x for which exp(x) is a legal value.
+              This varies from computer to computer; the distribution
+              copy has a fairly safe value.
+
+The remaining program constants should not be changed, except that 
+if the compiler constant DBL_MAX (the largest number which can be
+represented in double precision) is not available, it should be replaced
+by a suitable value (which varies depending on machine type).
+
+
+7.  PARAMETER FILE
+
+Optionally, RECOMBINE can take its default values from a parameter 
+file, "parmfile."  The user is then prompted to change them if necessary.
+This can save a lot of time when doing multiple runs with non-standard 
+settings.  If "parmfile" exists the program will use it; if not, it will 
+use its inbuilt defaults.
+
+The parmfile uses keywords to indicate the program options.  Each
+keyword must be typed precisely, followed by an equals sign and the
+value it is to take, with no spaces.  If a particular option requires
+additional values, they are indicated with a colon and each additional
+value is terminated with a semicolon.  Example (meaning "Gene frequences
+are not to be calculated from the data; they are A=0.25, C=0.33, G=0.25,
+T=0.17"):
+
+    freqs-from-data=false:0.25;0.33;0.25;0.17;
+
+The keywords can be in any order as long as "end" is last.  The 
+majority can be set to either "TRUE/FALSE" or "YES/NO", lowercase
+works too; a few require numbers instead.
+
+The "interleaved", "printdata", "progress", and "newdata"
+keywords control the input and output formats of the program.
+Note that you will not want to set "progress" to true if you are
+using the program in a batch mode, as the program will stop and wait
+for user approval of some of its tables.
+
+The "freqs-from-data" keyword controls whether base frequencies are
+computed from the data or provided by the user.  If it is set to false,
+the four base frequences must be provided in order A, C, G, T.  They
+should all be greater than zero and should sum to one.
+
+The "categories" keyword determines how many categories of mutation
+rate should be assumed.  If it is set to false, one category will be
+used and no subsidiary information is needed.  If it is set to true, it
+must be followed by the number of categories and then the relative rate
+and frequency of each.  For example, to set two categories, one with a
+relative mutation rate of 1 and frequency of 95%, and the other with a
+rate of 10 and frequency of 5%, "categories=true;2;1.0;0.95;10.0;0.05;".
+
+The "autocorrelation" keyword has meaning only when more than one
+category is present, and determines how long the expected runs of sites
+with the same mutation rate should be, e.g.:  "autocorrelation=true:10.0;"
+means that the average run of sites with the same rate is 10 bp.
+
+The "watterson" keyword controls the use of Watterson's estimate of
+Theta as the initial value of Theta.  If it is set to false, an initial
+estimate must be supplied:  "watterson=false:0.001;"
+
+The "rec-rate" keyword sets the starting value for the
+recombination ratio, and expects a number.
+
+The "panel" keyword allows for SNPs defined by a panel.  If it is set
+to true, the number of haplotypes in the panel must be provided:
+"panel=true:10;" for a panel of 10 sequences.
+
+The "holding" keyword controls the programs ability to search among
+parameter values.  If holding is set to "none" or "no" or "n" then a
+full normal search is indicated; for "theta" or "t" then theta will be
+fixed at its starting value; for "recombination" or "r" recombination 
+rate will be fixed.
+
+The "same-ne" keyword controls whether the input loci all share the
+same ratio of population size and mutation rates to each other.  If it
+is set to false, then the number of loci must be supplied followed by
+the ratio for each locus.
+
+The "usertree" keyword determines whether the user is providing a
+starting tree.  If it is set to true, the file "intree" will be expected
+to contain the starting tree.  If it is false, the program will generate
+a starting tree.
+
+The "ttratio" keyword sets the transition-transversion ratio, and
+expects a number ("ttratio=2.0").
+
+The "final-coalescence" keyword toggles between use and non-use of the
+final coalescence strategy.
+
+Keywords "short-chains", "short-inc", and "short-steps"
+control, respectively, the number of short chains to run, the number of 
+trees to skip between samples when running short chains, and the number of
+steps to run in each short chain.  They expect integers.  Keywords
+"long-chains", "long-inc", and "long-steps" control the same parameters 
+for long chains.
+
+The parmfile must end with the word "end" on a line by itself.
+
+
+8.  HEATING
+
+Heating is a way to improve the sampler's ability to move around and
+consider a good range of possible trees.  The heating scheme we
+use was suggested by Charles Geyer.  Several chains are run simultaneously.  
+The "coolest" chain is the same as the normal sampler.  The hotter
+chains have an increased chance to accept changes even if they
+are bad; this increased chance is expressed as a "temperature".  The
+hotter the chain, the greater its chance to accept.  (To be specific,
+the acceptance probability is raised to the power 1/temperature.)
+The hot chains are not used directly to make the estimate, since they 
+will tend to accept bad trees.  However, good trees discovered by the 
+hot chains can be swapped into the cold chain, helping it to find regions 
+of good trees that it might otherwise miss.
+
+To use heating you must pick a number of chains.  We have found 3 or
+4 chains to be about equally effective.  The runtime of the program will
+be multiplied by the number of chains used (i.e. if you run 4 chains
+the program will take 4 times longer) so 3 chains may be a good
+choice, balancing efficient searching and runtime.
+
+You must also pick a temperature for each chain.  The first chain 
+("cold chain") should always be at temperature 1 or the results will 
+be incorrect.  The other chains should be higher than 1 (we know of 
+no practical use for chains with temperature lower than 1) but we have 
+little empirical evidence for what the "best" values are.  Our 
+advice is to do a small pilot run and look at the rate at which
+swaps among chains are accepted.  If the rate of swap acceptance
+drops below about 1%, the hot chains are probably too hot.
+If it rises to a rate close to the acceptance rate of the cold 
+chain, the hot chains are probably not hot enough.  We have had 
+good preliminary results with temperature schemes of 1:3:9  
+for 3-chain samplers, but a wide variety of schemes should work.
+
+Output from a heating sampler will look similar to a regular sampler.
+Results are reported only for the cold chain.  The summary table
+will contain information about what proportion of between-chain swaps 
+were accepted.
+
+When should you consider using heating?  There are four indications
+that heating may be useful:
+
+(1)  Acceptance rate very low.  If 5% or less of proposed changes
+are accepted, the sampler will have trouble moving around, and heating
+may help it search more effectively.
+
+(2)  Program reaches different answers from different starting
+values.  If varying the Theta0 or r0 values, or the random number
+seed, leads to a markedly different result, the program is not searching
+well and heating may help.  This can be a problem even if the
+acceptance rate is fairly high--the program may be accepting only
+conservative local changes and never finding radically different
+trees.
+
+(3)  Long-term trend visible in estimates.  If you run ten short
+chains and in each one the estimate of Theta is lower than in the
+one before, the program is clearly still moving toward its final
+state.  This type of very slow movement may be a sign that heating
+is needed.
+
+(4)  Use of haplotyping.  If you have haplotype uncertainty at
+more than a very few sites (5-10) we strongly recommend using 
+heating.  The haplotype sampler tends to get stuck easily at a
+compatible tree+haplotypes combination and will not move away from
+it.  Heating produces much better results.
+
+When should you not use heating?  A 3-chain heated sampler takes
+3 times as much time and space as a 1-chain unheated sampler (plus
+a bit more, for overhead) so if time or space are limited you
+may have to forgo heating.  Simple cases, such as estimating only
+Theta, often do not need heating--the heated results are not wrong,
+but they are no better than the results from the unheated sampler,
+so the extra effort is wasted.
+
+
+9.  HAPLOTYPING
+
+This version of RECOMBINE is capable of taking data where the phase
+of certain sites is not known.  In other words, though RECOMBINE
+normally requires haplotyped data, it can take genotypes instead and
+attempt to sample over different possible assignments of sites to
+haplotypes.  Doing so is distinctly inefficient and you should prefer
+pre-haplotyped data if you can get it.  However, if you infer the
+haplotypes using some other program and enter them into RECOMBINE
+as if you knew them with certainty, you will probably see some
+downward bias in your estimate of r.  We don't yet know how large
+this bias will be.  It comes about because haplotype inference will
+produce "optimal" haplotypes and whenever those are not the same
+as the true haplotypes they will be "too optimal", showing less
+evidence for recombination.
+
+RECOMBINE does not infer a set of best haplotypes, and is not
+currently a useful tool to produce haplotypes for some other
+purpose; it samples among possible haplotypes, internally,
+and makes a combined inference of its parameters over all of the
+haplotypes it visits.
+
+When you ask RECOMBINE to work with phase-unknown data, it will assume 
+that each pair of entries in the input data file represents one individual.
+For each individual, it will expect a list of sites at which phase
+is unknown.  This list should be in an auxillary file named 
+"flipfile".  The first line of flipfile should give the number
+of individuals (not haplotypes) in the input data.  Then, for
+each individual include one line telling which sites are phase-
+unknown for that individual.  This line can contain one of three
+formats:
+
+"all" -- if all sites are flippable (phase-unknown)
+list of numbers -- these sites are flippable
+! followed by list of numbers -- all sites but these are flippable
+
+For example:
+
+----example flipfile----
+3
+all
+1 5 7
+!1 2 3
+----
+
+This example shows three individuals.  In the first individual all 
+sites are flippable, in the second individual sites 1, 5, and 7 
+are flippable, and in the third individual all sites but 1, 2 and 3 
+are flippable.  Individuals are listed in the same order in which 
+they appear in the infile.
+
+The program will not bother varying phase at a site which is
+homozygous, so it is not necessary to exclude such sites from the
+list of flippable sites.  However, if you do know phase at some
+sites, for example from family data, you should definitely *not*
+vary phase at those sites--doing so throws away useful information.
+
+Three strategies are available for varying phase.  "No resimulation"
+changes an individual's haplotype assignment and leaves that individual's
+two sequences right where they are in the tree.  "Single drop" detaches
+one of them (at random) and lets it find a new place in the tree. 
+"Double drop" detaches both and lets them both resettle.  In theory
+"no resimulation" might be too conservative in some cases.  In practice,
+however, we find that single and double drop reject so often that they
+are not useful.  Your milage may vary, but if you use single or double
+drop be sure to keep an eye on your acceptance rate.  The program
+will not produce a good estimate if it accepts no trees!
+
+You must also specify how much effort the program should put into
+proposing new haplotypes as opposed to proposing new trees.  We have
+found 20-30% effort into haplotypes to work fairly well.  Do not
+specify 0% (the program will not sample among different haplotypes
+at all, but it will still incur some extra work setting up to do so--
+it is better to simply not do haplotyping at all) or 100% (the
+program won't search among different trees and its estimates will
+be meaningless).
+
+You should increase the length of short and long chains proportionately:
+for example, if you put 20% effort into haplotyping you should
+run short and long chains at least 20% longer than you would with
+no haplotyping.
+
+The haplotyping sampler tends to get "stuck".  Heating can help,
+and we recommend that heating should always be used with haplotyping
+unless the number of phase-unknown sites is less than about 10.
+SNP data are similar to DNA or RNA sequence data, but there are some
+new considerations to bear in mind.  Since you are providing only a
+subset of the full sequence, you need to tell the program how that
+subset was chosen so that it can be interpreted correctly.
+
+
+10.  TIME AND SPACE 
+
+We have successfully run COALESCE on our DEC workstation with 
+800+ sequences, although it is not clear how many iterations are 
+needed to do an adequate job of searching the very large space 
+of possible genealogies in such a case.  
+
+RECOMBINE, however, is more space and time intensive.  How large
+a case is practical depends strongly on the recombination rate in 
+the actual data:  with a low rate large cases will run well, with a
+higher rate they will bog down sampling large numbers of recombinations.
+Runtime (for a given number of iterations) goes up less than 
+linearly with number of sequences, and much less than linearly with 
+number of sites.
+
+We have been successful with a data set of 146 sequences of
+length 88 SNPs on a DEC Alpha workstation, and with data sets of 20
+sequences of length 10,000 bp on the same machine.  Such runs can
+take a day or two.
+
+The program will not run well on a machine with less than about
+32 megabytes of memory--more is better--and users of small machines
+may well have to increase heap and/or stack allocations.  While the
+program attempts to diagnose when it is running out of memory, it
+is our sad experience that on most systems it fails, and simply
+crashes.
+
+11.  PAST, FUTURE AND CREDITS
+
+RECOMBINE was written by Mary Kuhner and Jon Yamato.  It draws
+heavily on the previous programs COALESCE and FLUCTUATE (by Kuhner
+and Yamato with assistance from Sean Lamont), MIGRATE (by Peter Beerli) 
+and DNAML (by Joseph Felsenstein).  This work was supported by 
+National Institute of Health grants 61-6788 and 62-1579 to Joseph 
+Felsenstein.
+
+This version, 1.40, differs from previous versions in the following
+ways:
+
+--SNP data is fully supported, and several SNP models are available.
+--Heating is available.
+--Estimation with haplotype uncertainty is available.
+--The base algorithm is slightly faster.
+--The "final coalescence" option is available to improve
+performance when r is very high.
+--Gaps between regions of sequence are handled correctly rather
+than being treated as regions where only a single recombination can
+occur.
+--Approximate confidence intervals are available. 
+--Several cases of numeric over- and underflow on specific machines
+have been handled (in particular, the program now works correctly
+on very recent Alpha machines that insist exp(-400)=NaN).
+
+In the future this program is likely to be superseded by the
+giant program LAMARC which will incorporate both recombination and
+migration.  We expect a preliminary release of LAMARC in late 2000.
+A wish list for the recombination facilities of the new program:
+
+--Microsatellite and elecrophoretic data.
+--A posteriori inference of recombinational hot spots.
+--Profile likelihoods and other summary statistics.
+--Ability to read and write recombinant genealogies.
+
+The 2000 release will not have all of these features yet.
+
+12.  DISTRIBUTION
+
+This program is available as part of the LAMARC package by anonymous FTP
+from evolution.genetics.washington.edu in directory /pub/lamarc.
+Currently we are providing source code and PowerMac, Windows95/98, and
+Intel Linux executables.  If you'd like to make other executables
+we will happily distribute them.
+
+PLEASE register your copy via email to mkkuhner@genetics.washington.edu,
+or using the Web page facility, so that we can reach you with bug fixes 
+and other information.  Questions and bug reports can be sent to the 
+same address.
+
+We do not have the resources to do diskette distribution of this
+program; please don't send or request diskettes unless there is
+*absolutely* no way you can retrieve the program electronically (i.e. 
+you live in a country with no access to the Internet).
+
+13.  REFERENCES
+
+Kuhner, M. K., J. Yamato and J. Felsenstein, 1995  Estimating effective
+population size and neutral mutation rate from sequence data using
+Metropolis-Hastings sampling.  Genetics 140:1421-1430.
+
+Kuhner, M. K., J. Yamato and J. Felsenstein, 1998  Using Metropolis-
+Hastings sampling to estimate population growth rates.  Genetics 
+149: 429-434.
+
+Kuhner, M. K., J. Yamato and J. Felsenstein, 2000  Usefulness of 
+single nucleotide polymorphism data for estimating population
+parameters.  Genetics 156: 439-447.
+
+Kuhner, M. K., J. Yamato and J. Felsenstein, 2000  Maximum likelihood
+estimation of recombination rate from population data.  Genetics
+in press.
+
+Kuhner, M. K. and J. Felsenstein, 2000  Sampling among haplotype
+resolutions in a coalescent-based genealogy sampler.  Genet. Epi.
+in press.
+
+Watterson, G. A., 1975  On the number of segregating sites in genetical
+models without recombination.  Theor. Pop. Biol. 7:256-276.
+
+
+14.  SAMPLE CASE
+
+Sample input and output files are included with this distribution.
+Using the default parameters, the sample run will take quite a long
+time--fifteen minutes on a fast PowerMac, up to hours on a smaller
+machine.  However, you should be able to see progress reports quite 
+quickly, which can serve as partial verification that the program is 
+working correctly.
