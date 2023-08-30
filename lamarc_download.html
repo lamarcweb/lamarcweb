@@ -1,0 +1,262 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+
+<META NAME="description" CONTENT="Estimation of population parameters using genetic data using a maximum likelihood approach with Metropolis-Hastings Monte Carlo Markov chain importance sampling">
+<META NAME="keywords" CONTENT="MCMC, Markov chain, Monte Carlo, Metropolis-Hastings, population, parameters, migration rate, population size, maximum likelihood">
+<script language=javascript>
+<!--
+var maila = new Image();
+var mailb = new Image();
+var booka = new Image();
+var bookb = new Image();
+var downa = new Image();
+var downb = new Image();
+
+maila.src = "graphics/mail.closed.gif";
+mailb.src = "graphics/mail.gif";   
+bookb.src = "graphics/BookOpen.gif";
+booka.src = "graphics/Book.gif";
+downa.src = "graphics/packet.gif";
+downb.src = "graphics/lamarc.gif";
+
+function turnoff(imgName)
+{
+    imgOff = eval(imgName + "a.src");
+    document [imgName].src = imgOff;
+}
+
+function turnon(imgName)
+{
+    imgOn = eval(imgName + "b.src");
+    document [imgName].src = imgOn;
+}
+
+//  -->
+</script>
+
+<title>LAMARC - the program</title>
+</head>
+<body bgcolor="#FFFFFF" Link="#0000FF" Vlink="#663399">
+
+<!-- coalescent, coalescence, Markov chain Monte Carlo simulation, migration rate, effective population size, recombination rate, maximum likelihood -->
+
+
+
+
+
+<table width=600>
+<tr><td align=center> <h1>LAMARC v2.1.10</h1>
+<H2>Estimation of recombination rate, migration rate,
+effective population sizes and exponential growth
+rates</h2></td></tr><tr><td align=center><img src="graphics/lamarc.gif" width=64
+alt="Icon" align="middle"></td></tr></table>
+<br>
+<table width=600>
+<tr><td align=left>
+
+<P>
+<em>Lamarc</em> is a program for doing <b>L</b>ikelihood <b>A</b>nalysis
+with <b>M</b>etropolis <b>A</b>lgorithm using <b>R</b>andom
+<b>C</b>oalescence. <em>Lamarc</em> estimates effective <b>population
+sizes</b>, <b> population exponential growth rates</b>, <b>a recombination
+rate</b>, past <b>migration rates</b> for <em>one</em> to <em>n</em>
+populations assuming a migration matrix model with asymmetric
+migration rates and different subpopulation sizes, 
+and optionally divergence form ancestral populations (the population tree
+must be known).
+</P>
+
+<P>
+This version can use DNA
+or RNA sequence data, SNPs, microsatellites, or electrophoretic data. The
+program can produce:  estimates of recombination rate, migration rates
+between each population pair, population sizes (scaled by mutation rate),
+population exponential growth rates, 
+times of population divergence,
+profile likelihood
+tables, and percentiles.
+</P>
+
+</td></tr></table>
+
+
+<h2>Precompiled executables</h2>
+
+<table width=600>
+<tr>
+<td width=200 align=center>
+<a href="download/lamarc-2.1.10-Linux-i686-gtk.tgz">
+<img src="graphics/linux.gif" height=32 alt="Linux"><br>LINUX (Intel)
+w/GTK</a><br>
+64-bit <tt>lam_conv</tt> and <tt>lamarc</tt> command line executables
+</td>
+
+<td width=200 align=center>
+<a href="download/lamarc-2.1.10-osx.dmg">
+<img src="graphics/macOS.gif"><br>Mac OSX dmg</a><br>
+64-bit <tt>lam_conv.app</tt> and <tt>lamarc.app</tt> clickable executables
+</td>
+
+<td width=200 align=center>
+<a href="download/lamarc-2.1.10-Windows.zip">
+<img src="graphics/windows95.gif" height=32 alt="Windows"> <br> Windows (Intel)</a> <br>
+64-bit <tt>lam_conv.exe</tt> and <tt>lamarc.exe</tt> clickable executables
+</td>
+
+<td width=200 align=center>
+<a href="download/lamarc-2.1.10-Win32.zip">
+<img src="graphics/windows95.gif" height=32 alt="Windows-32"> <br> Windows (Intel)</a> <br>
+32-bit <tt>lam_conv.exe</tt> and <tt>lamarc.exe</tt> clickable executables
+</td>
+
+</tr>
+
+</table>
+<hr>
+
+
+<h2>Source code and Documentation</h2>
+<table width=600>
+<tr>
+<td width=200 align=center>
+<a
+href="download/lamarc-2.1.10.1-src.tgz"><img 
+src="graphics/FileGnutar.gif" alt="fetch UNIX-source"></a>
+</td>
+<td width=200 align=center>
+<a href="documentation/index.html" ><img src="graphics/Book.gif" name="lib" alt="goto doc" align="middle"></a>
+</td>
+<td width=200 align=center>
+<a
+href="download/lamarc-2.1.10-doc.tgz"><img 
+src="graphics/FileGnutar.gif" alt="fetch html-docs"></a>
+</td>
+</tr>
+
+<tr>
+<td width=250 align=center>
+The Source
+</td>
+<td width=200 align=center>
+Read the Documentation
+</td>
+<td width=200 align=center>
+Download the Documentation (GNU tar and gzipped)
+</td>
+</tr>
+
+</table>
+<hr>
+
+
+<h2>Contacting us</h2>
+<table width=600>
+<tr>
+<td width=200 align=center>
+<a
+href="https://mailman1.u.washington.edu/mailman/listinfo/lamarc-announce"><img
+src="https://mailman1.u.washington.edu/icons/mailman.jpg" alt="sign up for
+the mailing list"></a>
+</td>
+<td width=200 align=center>
+<a href="mailto:lamarc@u.washington.edu" onMouseOver="mail.src=mailb.src"
+onMouseOut="mail.src=maila.src"><img src="graphics/mail1.gif"
+alt="goto mail" align="middle" name="mail" border=0></a>
+</td>
+</tr>
+
+<tr>
+<td width=250 align=center>
+Sign up to receive updates about LAMARC.
+</td>
+<td width=200 align=center>
+Send us fan mail, bug reports, or questions</td> 
+</tr>
+
+</table>
+<hr>
+
+
+<h2>Registration</h2>
+<b>Please register if you download something of the above</b>
+ <p>
+<form action="/cgi-bin/lamarc-program-form" method=post>
+
+<table width=600>
+<tr>
+<td width=600 valign=top>
+<PRE>
+<tt>Your name   : </tt><input type="text" name="name" value="" size=40>
+<tt>Address     : </tt><input type="text" name="address1" value="" size=40>
+<tt>            : </tt><input type="text" name="address2" value="" size=40>
+<tt>City/ZIP    : </tt><input type="text" name="city" value="" size=40><br>
+<tt>Country     : </tt><input type="text" name="country" value="" size=40>
+<tt>Your email  : </tt><input type="text" name="email" value="" size=40>
+<tt>Coordinates : </tt><input type="text" name="coordinates" value="" size=40>
+</PRE>
+</td>
+</tr>
+</table>
+<table width=600>
+<tr>
+<td>
+<input type="checkbox" name="message" value="Message" checked> <tt>Notify me if there is an update or patch</tt><br>
+<hr>
+<tt><b>Checkmark what you have downloaded:</b> </tt><br>
+<!--
+<input type="checkbox" name="PSdoc" value="PSDocumentation"> <tt>PS documentation</tt><br>
+<input type="checkbox" name="PDFdoc" value="PDFDocumentation"> <tt>PDF documentation</tt><br>
+-->
+<input type="checkbox" name="HTMLdoc" value="HTMLDocumentation"> <tt>HTML documentation</tt><br>
+<hr>
+<input type="checkbox" name="source" value="Source"> <tt>UNIX-source</tt><br>
+<!--
+<input type="checkbox" name="pmsource" value="PM_source" size=> <tt>Powermac-source</tt><br>
+-->
+<hr>
+<!--
+<input type="checkbox" name="alphabin" value="Alpha"> <tt>Dec Alpha binary</tt><br>
+-->
+<input type="checkbox" name="linuxIbin" value="LinuxIntel"> <tt>LINUX INTEL
+executable</tt><br>
+<!--
+<input type="checkbox" name="linuxPbin" value="LinuxPPC"> <tt>LINUX PPC binary</tt><br>
+-->
+<input type="checkbox" name="macosxbin" value="MacOSX"> <tt>MacOSX
+executable </tt><br>
+<input type="checkbox" name="windbin" value="Windows"> <tt>Windows
+executable</tt><br>
+</td>
+</tr>
+</table>
+
+<table width=600>
+<tr><td>
+Hardware & System?: 
+<input type="text" name="system" value="" size=90><br>
+Comments/What are you doing?<br>
+<TEXTAREA name="comments" ROWS=5 COLS=90></TEXTAREA><br>
+<input type="submit" name="submit" value=" Submit form " size=20> <input type="reset"  name="reset"  value=" Clear form  " size=20>
+</td>
+</tr>
+</table> 
+</form>
+
+
+
+<table width=600>
+<hr>
+<tr><td>
+<a href="mkkuhner.html">
+Mary K. Kuhner and Jon Yamato</a>,
+Dept. of Genome Sciences,
+University of Washington,
+Seattle 98195-5065;<br>
+<br>
+<A HREF="mailto:lamarc@uw.edu">lamarc@uw.edu</a>.
+</td></tr></table>
+
+<a href="//www.washington.edu/online/terms"> University of Washington Terms of Service </a>
+</body>
+</html>

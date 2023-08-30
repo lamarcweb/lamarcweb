@@ -1,0 +1,456 @@
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+<META NAME="description" CONTENT="Estimation of population parameters using genetic data using a maximum likelihood approach with Metropolis-Hastings Monte Carlo Markov chain importance sampling">
+<META NAME="keywords" CONTENT="MCMC, Markov chain, Monte Carlo, Metropolis-Hastings, population parameters, fluctuation, growth, migration rate, population size, maximum likelihood, recombination">
+
+<title>LAMARC - estimating population parameters</title>
+</head>
+
+<body bgcolor="#FFFFFF">
+<!-- coalescent, coalescence, Markov chain Monte Carlo simulation, migration rate, effective population size, maximum likelihood -->
+<table width=600>
+<tr>
+<td align=center>
+<h1 align=center> LAMARC - Likelihood Analysis with Metropolis Algorithm using Random Coalescence </h1>
+</td>
+</tr>
+<tr>
+<td width=600 align=center>
+<img src="graphics/lamarc.gif" border=1  height=100 alt="[LAMARC logo]" align=middle>
+</td>
+</tr>
+</table>
+<table width=600>
+<tr>
+<td width=600 align=justify>
+
+<A HREF="lamarc_download.html"><b>LAMARC</b></a> is a program which estimates
+population-genetic parameters such as population size, population growth
+rate, recombination rate, and migration rates. It approximates a summation
+over all possible genealogies that could explain the observed sample, which
+may be sequence, SNP, microsatellite, or electrophoretic data.  LAMARC and
+its sister program Migrate are successor programs to the older programs
+Coalesce, Fluctuate, and Recombine, which are no longer being supported. 
+The programs are memory-intensive but can run effectively on workstations;
+we support a variety of operating systems.
+
+</td>
+</tr>
+</table>
+<table width=600>
+<tr>
+<td width=490>
+The <STRONG>LAMARC</STRONG> package is not in any immediate sense derived
+from the work of Jean Baptiste Pierre Antoine de Monet, Chevalier de
+<STRONG>Lamarck</STRONG> (1744-1829).  The similarity of names is mostly
+accidental. But all evolutionary biologists do owe him a debt.  Lamarck is
+an unfairly maligned figure.  In addition to being one of the greatest
+figures of invertebrate biology, he was one of the founders (with Buffon) of
+the theory of evolution, and the first to propose a mechanism for evolution.
+You may want to <A
+HREF="http://www.ucmp.berkeley.edu/history/lamarck.html">read more about his
+life and work.</A> <td width=110 align=center> <A
+HREF="http://www.ucmp.berkeley.edu/history/lamarck.html"><img
+src="graphics/lamarck2.gif" alt="[Lamarck himself]" align=right width=110></A>
+</td>
+</tr>
+</table>
+<table width=600>
+<tr>
+<p><b> The authors of LAMARC support the <a href="defense_of_science.html">In Defense of Science</a>
+initiative.</b></p>
+</tr>
+</table>
+<table width=600>
+<tr>
+<td width=600 align=justify>
+<em>
+This material is based upon work supported by the National Science 
+Foundation under Grant No. 0814322.  Any opinions, findings, and 
+conclusions or recommendations expressed in this material are those of the 
+author(s) and do not necessarily reflect the views of the National Science Foundation. 
+</em>
+
+</td>
+</tr>
+</table>
+<P>
+<HLINE>
+<H2>News and Updates</H2>
+<table width=600  border=1>
+<tr>
+  <td>
+  <table width=600 border=1>
+  </td>
+  <tr>
+    <td width=100 align=left valign=top>
+    January 15, 2016
+    </td>
+    <td width=500 align=justified>
+    <a href="download/lamarc-2.1.10-src.tgz" download><b>Corrected source download for Lamarc 2.1.10</b></a>
+    Previous releases of this version omitted Makefiles and other files
+    needed to compile Lamarc from source code.  Unless you are trying (and
+    failing) to do so, there is no need to update.
+    </td>
+  </tr>
+  <tr>
+    <td width=100 align=left valign=top>
+    September 3, 2014
+    </td>
+    <td width=500 align=justified>
+
+    <a href="lamarc_download.html"><b>Lamarc 2.1.10</b></a>.
+    This is a minor bug fix release.  The bug fixed is:
+    <ul>
+    <li> FIXED:  lam_conv file converter reversed source and
+         destination populations when using custom migration
+         matrices.  If you used a custom matrix to set asymmetrical
+         migration rates in any prior version, you will need to
+         re-convert your files and re-run your analysis.  All
+         other results are unaffected.
+    </ul>
+    </td>
+   </tr>
+  <tr>
+    <td width=100 align=left valign=top>
+    December 11, 2013
+    </td>
+    <td width=500 align=justified>
+
+    <a href="lamarc_download.html"><b>Lamarc 2.1.9</b></a>,
+    This is an <b>important bug fix</b> release.  Bugs fixed are:
+    <ul>
+    <li> FIXED:  multiple severe bugs in inference of population 
+         divergence.  All analyses involving population divergence 
+         should be re-run.
+    <li> FIXED:  failure of DNA or SNP runs with invariant loci.  If
+         your run completed successfully you did not encounter this
+         bug and re-running is not necessary.
+    <li> FIXED:  lam_conv file converter wrote a multi-population
+         XML file for some single-population cases.  If your converted
+         file led to a successful run you did not encounter this bug
+         and re-running is not necessary.
+    </ul>
+    </td>
+   </tr>
+   <tr>
+    <td width=100 align=left valign=top>
+    January 7, 2013
+    </td>
+    <td width=500 align=justfified> 
+    <h> WARNING:</h>  The inference of population divergence in Lamarc 2.1.8 contains a serious
+    bug.  We are working on a fix and will release it as soon as possible.  In the meantime,
+    please do not rely on any results involving divergence (other functionality is not
+    affected).   We apologize for this error.
+    </td>
+    </tr>
+    <td width=100 align=left valign=top>
+    May 29, 2012
+    </td>
+    <td width=500 align=justified> 
+
+    <a href="lamarc_download.html"><b>Lamarc 2.1.8</b></a>,
+    This is an <b>important bug fix</b> 
+    and <b>new feature</b> release. Bugs fixed are:
+    <ul>
+    <li> FIXED: major bug for all runs modeling migration. 
+         All runs which inferred migration should be re-run.
+         In addition, a bug in the reporting of migration
+         start values has been fixed.
+    <li> FIXED: bug affecting runs sampling a significant number
+         of trees modeling negative growth.
+         Runs modeling growth should
+         be re-run unless they were Bayesian runs with growth
+         priors not allowing negative growth.
+    </ul>
+    <b>New features</b> and improvements are:
+    <ul>
+    <li> NEW FEATURE: <a href="documentation/divergence.html">Population divergence</a>.
+    <li> NEW FEATURE: Correction for data derived from a <a href="documentation/panels.html">SNP panel</a>.
+    <li> UPDATED: method for checking convergence in LIKELIHOOD
+         runs has been improved, yielding faster convergence.
+         No previous runs need be re-done.
+    <li> UPDATED: the <a href="documentation/converter.html"><tt>lam_conv</tt> file converter</a>
+         layout has changed to support <a href="documentation/divergence.html">divergence</a>
+         and <a href="documentation/panels.html">SNP panel correction.</a>
+         Previous functionality is preserved, though it may look slightly different.
+    </ul>
+    </P>
+    <br>
+    </td>
+  </tr>
+  <tr>
+    <td width=100 align=left valign=top>
+    January 21st, 2011
+    </td>
+    <td width=500 align=justfified> 
+
+    <a href="lamarc_download.html"><b>Lamarc 2.1.6</b></a>,
+    This is an <b>important bug fix</b> release. Bugs fixed are:
+    <ul>
+    <li> FIXED: major bug with data likelihood calculations for runs
+         modeling recombination. All runs which inferred recombination
+         rate or held it to a non-zero value in
+         versions 2.1.2 through 2.1.5 should be re-run.
+    <li> FIXED: calculation of invariant data term for SNP data 
+         modeled with a per-base error rate.
+         All 2.1.5 runs which used the data uncertainty model on
+         SNP data should be re-run.
+    <li> UPDATED: random number generator to use the Boost library,
+         and added guards against returning values of exactly 0 or 1
+         for double values.
+         No previous runs need be re-done, but if you had a data set
+         with an unexplained crash, this may fix it.
+    </ul>
+    </P>
+    <br>
+    </td>
+  </tr>
+  <tr>
+    <td width=100 align=left valign=top>
+    May 10th, 2010
+    </td>
+    <td width=500 align=justfified> 
+
+    <b>Lamarc 2.1.5</b>,
+    This is a minor bug fix/enhancement release. Improvements include:
+    <ul>
+    <li>Improved output reporting
+    <li>Compiles with g++ 4.3.3
+    <li>Minor user experience improvements
+    <li>data uncertainty model (beta test)
+    </ul>
+    </P>
+    <br>
+    </td>
+  </tr>
+  <tr>
+    <td width=100 align=left valign=top>
+    March 4, 2009
+    </td>
+    <td width=500 align=justified> 
+    Two publications relevant to Lamarc:
+    <ul>
+    <li><a href="http://www.cell.com/trends/ecology-evolution/abstract/S0169-5347(08)00348-0">Kuhner MK (2009) Coalescent genealogy samplers: windows into population
+history.  TREE 24:86-93. </a>  A general review of genealogy samplers, including Lamarc.</li>
+    <li><a href="http://www.thephylogenetichandbook.org"> Lemey, Salemi and Vandamme (eds) (2009) The Phylogenetic Handbook: A Practical
+Approach to Phylogenetic Analysis and Hypothesis Testing, 2nd Edition.  Cambridge University
+Press. </a> Contains a chapter on use of Lamarc. </li>
+    </ul>
+    <br>
+    </td>
+  </tr>
+</table>
+</td></tr></table>
+  </table>
+  </td>
+<P>
+<table width=600>
+<tr>
+<td width=600>
+<h2>General</h2>
+
+<p>
+All methods presented here use the coalescence theory of <A
+HREF="kingman.html">Kingman</A> (1982a, b) and estimate population
+parameters like effective population size, growth rate, migration rate. To
+achieve this, the methods sample random genealogies of sequences (or
+alleles) and calculate the parameters. Since this is an integration over
+almost an infinitely large tree space, the methods use a Metropolis Monte
+Carlo sampling technique to concentrate the sampling in regions which
+contribute to the final result.</P>
+
+<P>
+LAMARC is written in C++
+and is also available as executables for Windows, MacOS and
+Linux.  It will compile on most workstations.  You can find more
+information to the individual programs following the links below:
+</td>
+</tr>
+</table>
+
+<h2>Programs available:</h2>
+<P>
+<table width=600>
+<tr>
+<td width=40>
+<A HREF="lamarc_download.html"><IMG SRC="graphics/lamarc.gif" width=32 alt="[Lamarc icon]"></A>
+</td>
+<td width=460>
+<A HREF="lamarc_download.html"><tt> Lamarc </tt></A> estimates the <em>effective 
+population sizes</em>, <em> population exponential growth rates</em>, 
+<em>migration rates</em>, and <em> per-site recombination rate</em> of 
+<em>n populations</em> using DNA, SNP, microsatellite, or electrophoretic
+data.  It can also perform <em>trait mapping</em>. (Last update:  
+July 2008)
+</td>
+</tr>
+<tr>
+<td width=40>
+<A HREF="http://popgen.sc.fsu.edu/Migrate/Migrate-n.html"><IMG SRC="graphics/migrate.gif" alt="[Migrate icon]"></A>
+</td>
+<td width=460>
+<A HREF="http://popgen.sc.fsu.edu/Migrate/Migrate-n.html"><tt> Migrate </tt></A>
+estimates the <em>effective population sizes</em>  and <em>migration
+rates</em> of  <em>n constant populations</em> using nonrecombining
+sequence, microsatellite or enzyme electrophoretic data.  Migrate is now
+maintained by Peter Beerli at Florida State University.
+</td>
+</tr>
+</table>
+
+<h2>Older programs (for reference):</h2>
+
+<table width=600>
+
+<tr>
+<td width=40>
+<A HREF="recombine/"><IMG SRC="graphics/recombine.gif" alt="[Recombine icon]"></A>
+</td>
+<td width=460>
+
+<A HREF="recombine/"><tt> Recombine </tt></A> estimates the <em>
+effective population size </em> and <em> per-site recombination rate</em> of
+a <em> single constant-size population</em> using sequence or SNP data.
+(last updated:  June 2002)
+
+</td>
+</tr>
+
+<tr>
+<td width=40>
+<A HREF="fluctuate/"><IMG SRC="graphics/fluctuate.gif" alt="[Fluctuate icon]"></A>
+</td>
+<td width=460>
+<A HREF="fluctuate/"><tt> Fluctuate </tt></A> estimates the
+<em>effective population size</em>  and a <em> exponential growth rate</em>
+of a <em>single growing population</em> using nonrecombining sequence data.
+(last updated:  September 2002)
+</td>
+</tr>
+
+<tr>
+<td width=40>
+<A HREF="coalesce/"><IMG SRC="graphics/coalesce.gif" alt="[Coalesce icon]"></A>
+</td>
+<td width=560>
+<A HREF="coalesce/"><tt>Coalesce</tt></A> estimates the <em>effective
+population size</em> of a <em>single constant population</em> using
+nonrecombining sequences. (last updated:  September 1995)
+</td>
+</tr>
+
+</table>
+<P>
+
+<HR>
+<h2>Papers and Posters available:</h2>
+
+
+<table width=600>
+
+<tr>
+<td width=40>
+<IMG SRC="graphics/lamarc.gif" width=32 alt="[Lamarc icon]">
+</td>
+<td width=40>
+<A HREF="download/bioinformatics2006-lamarc2.0.pdf"><IMG SRC="graphics/pdf.gif", alt="[PDF Document]"></A>
+</td>
+<td width=560>
+<B>Paper</B> introducing LAMARC 2.0 (also available from the <A
+HREF="http://bioinformatics.oxfordjournals.org/cgi/content/abstract/22/6/768">Bioinformatics</a>
+web site).
+</td>
+</tr>
+
+<tr>
+<td width=40>
+<IMG SRC="graphics/lamarc.gif" width=32 alt="[Lamarc icon]">
+</td>
+<td width=40>
+<A HREF="supplemental/Tutorial_poster.pdf"><IMG SRC="graphics/pdf.gif", alt="[PDF Document]"></A>
+</td>
+<td width=560>
+<b>Poster</b> presented at the <A
+HREF="http://www.zoology.ubc.ca/evo-wibo/">EVO-WIBO</a> meeting 2006 in Port Townsend, Washington . 
+</td>
+</tr>
+
+<tr>
+<td width=40>
+<IMG SRC="graphics/migrate.gif" alt="[Migrate icon]">
+</td>
+<td width=40>
+<A HREF="download/beerli-felsenstein-2001.pdf"><IMG SRC="graphics/pdf.gif" alt="[PDF doc]"></A>
+</td>
+<td width=560>
+<B>Paper</B> about <A HREF="migrate.html"> <tt>Migrate</tt></A> (n-population version).
+</td>
+</tr>
+
+<tr>
+<td width=40>
+<IMG SRC="graphics/migrate.gif" alt="[Migrate icon]">
+</td>
+<td width=40>
+<A HREF="download/genetics763.pdf"><IMG SRC="graphics/pdf.gif" alt="[PDF doc]"></A>
+</td>
+<td width=560>
+<B>Paper</B> about <A HREF="migrate.html"> <tt>Migrate</tt></A> (2-population version).
+</td>
+</tr>
+
+<tr>
+<td width=40>
+<IMG SRC="graphics/fluctuate.gif" alt="[Fluctuate Icon]">
+</td>
+<td width=40>
+<A HREF="download/fluctuate1.1.pdf"><IMG SRC="graphics/pdf.gif" alt="[PDF doc]"></A>
+</td>
+<td width=560>
+<B>Paper</B> about <A HREF="fluctuate/"><tt>Fluctuate</tt></A>.
+</td>
+</tr>
+
+<tr>
+<td width=40>
+<image SRC="graphics/coalesce.gif" alt="[Coalesce icon]">
+</td>
+<td width=40>
+<A HREF="download/metro-hastings.pdf"><IMG SRC="graphics/pdf.gif" alt="[PDF doc]"></A>
+</td>
+<td width=560>
+<B>Paper</B> about <A HREF="coalesce/"><tt>Coalesce</tt></A>.
+</td>
+</tr>
+<tr>
+</table>
+<P>
+
+<HR>
+<h2>Go back to:</h2>
+<UL>
+<LI> <A HREF="../phylip.html"> PHYLIP </A> home page
+<LI> <A HREF="../index.html"> WWW-directory </A> of evolution.gs.washington.edu
+</UL>
+<p>
+<HR>
+<h2>Get help:</h2>
+<UL>
+<li><A HREF="mailto:lamarc@uw.edu">lamarc@uw.edu</a>
+</UL>
+<p>
+<HR>
+<Address><A HREF="mkkuhner.html"> Mary K. Kuhner &amp; Jon Yamato</A>
+<A HREF="mailto:mkkuhner@uw.edu">mkkuhner@uw.edu</a>
+Department of Genome Sciences,
+University of Washington, Box 355065,
+Seattle, WA  98195-5065,  USA.  
+Phone: (206) 543-8751, 
+fax: (206) 685-7301</Address>
+<P>
+<a href="//www.washington.edu/online/terms" > University of Washington Terms of Use </a>
+</body>
+</html>

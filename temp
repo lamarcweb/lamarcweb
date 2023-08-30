@@ -1,0 +1,10 @@
+    <a href="lamarc_download.html"><b>Lamarc 2.1.10</b></a>.
+    This is a minor bug fix release.  The bug fixed is:
+    <ul>
+    <li> FIXED:  lam_conv file converter reversed source and
+         destination populations when using custom migration
+         matrices.  If you used a custom matrix to set asymmetrical
+         migration rates in any prior version, you will need to
+         re-convert your files and re-run your analysis.  All
+         other results are unaffected.
+  <table width=600  border=0>

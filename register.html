@@ -1,0 +1,45 @@
+<HEAD> </HEAD>
+
+<BODY>
+<FORM METHOD=POST ACTION="/cgi-bin/lamarc-form">
+<H1> Registration form </H1>
+<P>
+<H2> Please fill this out if you have transferred any of our files </H2>
+<P>
+<H3> Your name(s) and address </H3>
+Name of person or persons who will own the copy<INPUT NAME="Registered Name" SIZE=80><BR>
+Address, line 1<INPUT TYPE="text" NAME="Registered Address #1" SIZE=80><BR>
+Address, line 2<INPUT TYPE="text" NAME="Registered Address #2" SIZE=80><BR>
+Address, line 3 (if needed)<INPUT TYPE="text" NAME="Registered Address #3" SIZE=80><BR>
+Address, line 4 (if needed). Include country if not U.S.<INPUT TYPE="text" NAME="Registered Address #4" SIZE=80><BR>
+<P>
+<H3> Phone and e-mail information </H3>
+Phone number<INPUT TYPE="text" NAME="Phone Number" SIZE=20><BR>
+Fax number<INPUT TYPE="text" NAME="Fax Number" SIZE=20><BR>
+e-mail address<INPUT TYPE="text" NAME="Email Address" SIZE=40><BR>
+<P>
+<H3> what you have fetched (select all that apply):</H3>
+<INPUT TYPE=checkbox NAME="flucG" VALUE="fluctuate.tar.gz ">&nbsp Fluctuate package (UNIX tar.gz format) <BR>
+<INPUT TYPE=checkbox NAME="flucZ" VALUE="fluctuate.tar.Z ">&nbsp Fluctuate package (UNIX tar.Z format) <BR>
+<INPUT TYPE=checkbox NAME="flucX" VALUE="flucsea.hqx ">&nbsp Fluctuate package (Mac CompactPro archive)<BR>
+<INPUT TYPE=checkbox NAME="flucI" VALUE="finstall.exe ">&nbsp Fluctuate package (PC Windows executable)<BR>
+<INPUT TYPE=checkbox NAME="coalT" VALUE="metro-hastings.tex ">&nbsp Paper describing Coalesce (LaTeX)<BR>
+<INPUT TYPE=checkbox NAME="coalP" VALUE="metro-hastings.ps ">&nbsp  Paper describing Coalesce (postscript)<BR>
+<INPUT TYPE=checkbox NAME="flucT" VALUE="fluctuate.tex ">&nbsp Paper describing Fluctuate (LaTeX)<BR>
+<INPUT TYPE=checkbox NAME="flucP" VALUE="fluctuate.ps ">&nbsp  Paper describing Fluctuate (postscript)<BR>
+<INPUT TYPE=checkbox NAME="recG"  VALUE="recombine.tar.gz ">&nbsp Recombine (UNIX tar.gz format)<BR>
+<INPUT TYPE=checkbox NAME="recZ"  VALUE="recombine.tar.Z ">&nbsp Recombine (UNIX tar.Z format)<BR>
+<INPUT TYPE=checkbox NAME="recZ"  VALUE="recombine0.1.sea.hqx ">&nbsp Recombine (Mac CompactPro archive)<BR>
+<INPUT TYPE=checkbox NAME="recZ"  VALUE="rinstall.exe ">&nbsp Recombine (PC Windows executable)<BR>
+<P>
+<H3> Computer information </H3>
+Type of computer<INPUT NAME="Computer Type" SIZE=80><BR>
+Operating system<INPUT NAME="Operating System" SIZE=80><BR>
+
+<P>
+<H3> Comments on who you are or on LAMARC: </H3>
+<INPUT TYPE="text" NAME="Comments" SIZE=80> <BR>
+<INPUT TYPE="submit"> <B> OK, submit this </B> <BR>
+<INPUT TYPE="reset"> <B> Reset Form</B> <BR>
+</FORM>
+</BODY>
