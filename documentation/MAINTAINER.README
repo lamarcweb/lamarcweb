@@ -1,0 +1,177 @@
+********************************************************
+********************************************************
+NOTES ON BUILDING AND MAINTAINING LAMARC USING AUTOTOOLS
+********************************************************
+********************************************************
+
+With each new CVS checkout of the lamarc package, and
+with each update to the files Makefile.am or configure.ac,
+developers should use the autotools to generate the
+configure script and an up-to-date Makefile. 
+
+Maintaners need recent versions of automake and autoconf.
+I used automake 1.8.3 and autoconf 2.59. These are
+readily available from
+   http://www.gnu.org/software/autoconf/
+   http://www.gnu.org/software/automake/
+If you don't have root permission, you can install these
+in a directory tree you call <sandbox> by invoking the
+autoconf and automake ./configure scripts like this:
+    ./configure --prefix=<sandbox>
+and putting <sandbox>/bin on your path. You will need
+to install autoconf before automake.
+
+Our code now relies on the wxWidgets (a.k.a. wxWindows)
+library. We include a gzip'd tar file of a release of
+wxWindows 2.6.3 in the lamarc/wxWidgets directory
+To unpack the archive and  build the wxWidgets library, the
+easiest thing to do is execute the following steps
+from this directory:
+    cvs co lamarc
+    cd lamarc
+    mkdir debug
+    cd debug
+    ../configure --enable-debug --enable-buildwx
+    make
+
+If you make changes to Makefile.am (such as adding or removing source
+files) you'll need to do
+    cd <lamarc top dir>
+    aclocal
+    autoconf
+    automake
+    cd debug
+    ../configure --enable-debug
+    make
+
+The Lamarc version number is set only in configure.ac
+
+Our users build distributions that are created by us
+using the "dist" target and should not be required
+to follow the maintainer building instructions
+above. They need to be supported to do only:
+    mkdir release
+    cd release
+    ../configure --enable-buildwx
+    make
+
+===========================
+Building a universal binary
+===========================
+
+(1) check out the lamarc source on a linux box and build the
+distribution. The "--disable-gui and --disable-batch are to
+keep the configure script from requiring wxWidgets, which is
+not needed for building a distribution
+    cvs co lamarc
+    cd lamarc
+    mkdir dist
+    cd dist
+    ../configure --disable-gui --disable-batch
+    make dist
+
+(2) copy the resulting distribution lamarc-<version_number>.tar.gz
+to a modern mac
+
+(3) on the mac, unpack the distribution and build
+    tar xfvz lamarc-<version_number>.tar.gz
+    cd lamarc-<version_number>
+    mkdir debug
+    cd debug
+    ../configure --enable-buildwx --enable-universal_binary --disable-dependency-tracking --enable-debug
+    make
+
+the "--disable-dependency-tracking" should be automatic with the
+"--enable-universal_binary", but I haven't done that yet.
+
+==============================
+Additional configuration files
+==============================
+
+Several settings can also be changed using a copy of the local_build.h
+file. The default lives in ./config . Read the comments in the default
+version for more information
+    ./config/local_build.h
+
+Additionally, the local_build.h file includes information on how to
+use Lamarc's tracing abilities. See local_build.h plus these files
+for more information:
+    ./src/control/dynatracer.h
+    ./src/control/dynatracer.cpp
+
+
+
+================
+Updating Tinyxml
+================
+
+When updating to a new version of tinyxml (or any other
+third-party software) please use the "cvs import" command.
+This is how I did it for tinyxml:
+
+    got the latest tinyxml src distribution
+    untar'd it
+    cd into top level directory ("tinyxml")
+    cvs import lamarc/tinyxml tinyxml v_2_2_1
+
+As of this writing (7/28/2004) there are two versions of
+the scripts "missing", "install-sh", and "depcomp" under
+this directory and under the config subdirectory. This is
+due to a bug in autoconf. Eventually they should only need
+to be in the config subdirectory
+
+==========================================================
+How we used to compile lamarc under codewarrior on the Mac
+(Probably doesn't work anymore)
+==========================================================
+
+    started up codewarrior
+
+    New > Mac OS C++ Stationery
+        folder macos, 
+        project "lamarc_proj"
+        C++ console carbon (Under Mac OS Carbon > Standard Console)
+
+    Under "Targets" tab on "lamarc_proj"
+        Removed Debug target (control-click, choose "clear")
+
+    Under "Files" tab on "lamarc_proj"
+        removed HelloWorld.cp (control-click, choose "clear")
+        dragged src directory, removed converter
+        dragged tinyxml directory, removed tinystr.*, xmltest.cpp
+        dragged config directory
+        dragged resources/lamarc.icns
+
+    in Settings Menu (File > Carbon C++ Console Final Settings)
+
+        Target > Target Settings
+            renamed target name to LAMARCTARGET
+            save project entries using relative paths
+
+        Target > Access Paths
+            always search user paths
+            added projects/macos to search paths (to pick up MacOSPrefix.h)
+            added resources to search paths (to pick up lamarc.icns)
+                (To add, click in User paths box and then click "Add")
+
+        Target > PPC Target
+
+            Creator LMRK
+            File name "lamarc-mac"
+            Prefered Heap 100 Meg
+            Min Heap 10 Meg
+            Stack 1 Meg
+
+        Language Settings > C/C++ Language
+
+            Prefix File: MacOSPrefix.h
+
+        Language Settings > C/C++ Warnings
+
+            turned off: unused vars, unused args, hidden virtual,
+                inconsistent use of struct/class
+
+        Linker > Mac OS Packager
+
+            turned on Use Mac OS Packager
+            create alias to Classic executable
