@@ -1,0 +1,555 @@
+FLUCTUATE -- Metropolis-Hastings Markov Chain Monte Carlo genealogy
+sampler
+
+For use in cases with or without variable population size, but without
+migration, selection or recombination.
+
+Version 1.3, September 2, 1998
+
+This docoment contains:
+1.  Description of FLUCTUATE
+2.  Compiling the program
+3.  Input files
+4.  Menu 
+5.  Output files
+6.  Program constants
+7.  Parameter file
+8.  Time and Space
+9.  Past, future and credits
+10. Distribution
+11. References
+12. Sample case
+
+Troubleshooting advice is in a separate file, errors.doc.
+
+1.  DESCRIPTION OF FLUCTUATE
+
+     This program takes as input a set of aligned DNA or RNA sequences
+from different individuals in a population and uses them to make maximum 
+likelihood estimates of the parameter "Theta" and "g", using the method 
+described in Kuhner et al. (1995b).  Theta is defined as 4 times the
+effective population size times the mutation rate in a diploid organism,
+or 2 times the effective population size times the mutation rate in a
+haploid, at the present time (the time at which the organisms were
+sampled).  Note that this is mutation rate per site, not per locus.
+The parameter g is the exponential growth (or decline) rate of the 
+population:  that is, the population size at time t is Theta times exp(-gt). 
+Positive values of g indicate growth; negative ones, decline.
+     A menu flag allows this program to emulate COALESCE (i.e. ignore
+population growth) in which case it should produce almost exactly the
+same results as COALESCE and run about as fast as that program did.  (Even
+with the same random number the results will not be totally identical
+because the sequence of random number calls is different.)  We
+are no longer going to distribute COALESCE, in order to concentrate all
+our programming bugs in one place.
+     FLUCTUATE assumes that the loci sampled are not affected by 
+selection or recombination.  If these assumptions are violated the results 
+may be erroneous.  The algorithm begins with a genealogy for
+the sequences and sequentially makes modifications in it, accepting 
+or rejecting the modifications based on the sequence data, and
+sampling the current genealogy at intervals.  From the sampled
+genealogies it constructs a likelihood curve and maximum likelihood
+estimates for Theta and g.  The aim is to preferentially sample those
+genealogies which can contribute substantial information to the estimates,
+avoiding the myriads of possible but unlikely and thus uninformative 
+genealogies.  If multiple loci are analyzed, the likelihoods will be
+summed to provide an overall curve and estimate.
+    The basic unit of progress of the program is a "step"--one proposed
+change to the genealogy, which may be accepted or rejected.  A continuous 
+series of steps, all using the same parameter values, is a "chain".  
+    To interpret the results it will be necessary to consider them
+together.  Theta is 4Nmu, population size times mutation rate, with mu
+in units of 1/(sites*generations).  This approach has no way to
+distinguish effects due to N from effects due to mu, but if you know mu
+you can estimate N (or vice versa).  For example, if the output Theta
+is 0.01 and you are willing to assume that mu is 1x10e-6 per site per
+generation, N is approximately 2,500.  The growth parameter g is in
+units of 1/(mu*generations).  Using the values above, a g value of 100
+represents a growth rate of 10e-4 per generation.  Please consult our
+paper (Kuhner et al. 1996) for more details on interpreting the
+results.
+
+2.  COMPILING THE PROGRAM
+
+    FLUCTUATE is written in ANSI C.  For UNIX systems a Makefile is 
+provided, and the program can be compiled by typing simply "make 
+lamarc".  Users of other operating systems will need to use the 
+appropriate commands to link in the math library and header files.
+    You may need to allocate additional heap or stack space when
+compiling this program as it uses an enormous amount of space,
+especially with large numbers of sequences.
+    We have successfully compiled and run FLUCTUATE on a DECstation under
+Ultrix 4.2 (using both cc and GNU's gcc compiler), on a DEC Alpha under
+OSF1, on a PowerPC using MetroWorks, and on a Pentium PC under Linux using
+gcc and under Windows using WatCom C.  Space generally appears to be the
+limiting factor.  We have heard reports of successful use of COALESCE on 
+VMS using DECC.
+
+3.  INPUT FILES
+
+    Minimum input for FLUCTUATE is a single file, "infile", containing the
+aligned sequences.  Three other input files, "intree", "parmfile" and
+"seedfile", are optional--the program will use them if they are present,
+but does not require them.
+
+A.  "infile"
+
+     FLUCTUATE expects as input a file named "infile" containing aligned 
+nucleotide sequences in one of two formats:  interleaved (first line of
+all sequences, second line of all sequences, etc.) or sequential (all 
+of sequence 1, then all of sequence 2, etc.).  The first line of the
+file gives the number of loci.   After that, the loci are presented one
+at a time, each introduced by a single line which gives the number of 
+sequences at that locus and the number of sites in each sequence.
+There is no requirement that each locus contain sequences from the same
+individuals.  Note that each sequence must have a ten character name 
+(padded out with blanks if necessary) and these names must match the names 
+in the tree for the locus, if a tree is provided. 
+     Sequences may contain blanks, but may not end with blanks, and
+blank cannot be used to indicate a deletion (use X, N or ? instead).
+The standard ambiguity symbols are available.  RNA and DNA are both
+accepted.
+
+B.  "intree"
+     If the user wishes to provide starting genealogies for FLUCTUATE, they
+should be placed in the file "intree" in standard format (see sample
+files).  The input trees *must* have clocklike branch lengths, and their
+sequence names must be identical to those used in "infile".  The first
+input tree will be used for the first locus, and so on.  FLUCTUATE
+can construct its own starting genealogy, but does so in a very
+arbitrary way:  results may be improved by providing a reasonable
+starting genealogy such as a UPGMA tree of the sequences.
+
+C.  "parmfile"
+    To reduce the number of menu options that have to be set each run,
+the user can create a file "parmfile" giving defaults for the menu
+settings.  The parmfile is discussed in more length in section 7, since
+it is not necessary to running the program.
+ 
+D.  "seedfile"
+    Normally FLUCTUATE prompts for a random number seed at the beginning
+of each run, but if "seedfile" is present it will be used instead.  The
+file should contain a single integer number of the form 4n+1 (that is,
+one greater than a multiple of four).  FLUCTUATE does not update this
+file.
+
+4.  MENU
+
+A sample menu:
+
+--
+
+FLUCTUATE:  Hastings-Metropolis Markov Chain Monte Carlo method, version 1.0
+
+INPUT/OUTPUT FORMATS
+  I          Input sequences interleaved?  No, sequential
+  E        Echo the data at start of run?  No
+  P Print indications of progress of run?  Yes
+  G                Print out genealogies?  No
+  Q   Allow interactive design of output?  No
+MODEL PARAMETERS
+  T        Transition/transversion ratio:    2.0000
+  F       Use empirical base frequencies?  Yes
+  C   One category of substitution rates?  Yes
+  W      Use Watterson estimate of theta?  Yes
+  H        Population can change in size?  Yes
+  V  Rate of change parameter for growth:  1.000000e-05
+  A           Allow parameters to change?  Yes
+  U      Use user tree in file "intree" ?  Yes
+SEARCH STRATEGY
+  S        Number of short chains to run?      10
+  1             Short sampling increment?      20
+  2   Number of steps along short chains?    1000
+  L         Number of long chains to run?       2
+  3              Long sampling increment?      20
+  4    Number of steps along long chains?   15000
+
+Are these settings correct? (type Y or the letter for one to change)
+
+--
+ 
+     Unless a file "seedfile" is present, the program will prompt for a
+random number seed before displaying the menu.  The random number
+generator used is deterministic, so two runs with the same seed and
+parameters will be identical.  Seeds should be of the form 4n+1, that is
+they should be one greater than a multiple of 4.  If "seedfile" exists
+the program will read its seed from that file and will not prompt for
+one.
+
+A.  INPUT/OUTPUT FORMATS
+
+     The I option controls whether the input sequences are in interleaved or
+sequential format (see Input Formats).  The E option allows you to print
+the sequence data at the beginning of the output, which can be useful
+for verifying that it has been read correctly.  The P option will produce 
+voluminous text tracing the progress of the run; this is useful if you don't 
+know how long the program will take and want to keep an eye on its progress.  
+The G option determines whether or not the genealogies from the final 
+run will be written out into "treefile".
+
+     The Q option allows the user to fiddle with the output table for
+Theta and g until it shows the desired part of the distribution.  After
+each locus is processed, and again for the multilocus estimate if there
+are multiple loci, a table is displayed on-screen and the user is given
+options to change its ranges.  The range over Theta can be in either
+logarithmic or regular form; the range over g must be in regular form
+(since it can be either positive or negative).  When the user is
+satisfied with the table, a "yes" answer when asked whether to accept
+this table will print it to the output file.  This option has no effect
+if population growth is not being allowed, as no two-dimensional table
+is produced in such a case.
+
+B.  MODEL PARAMETERS
+
+     T controls the ratio of transitions to transversions; a ratio of 2.0
+means that transitions are twice as likely as transversions.  Due to a
+limitation of the model used, a transition/transversion ratio of 0.5
+(corresponding to no preference for transitions) will cause an error.
+If you wish to test this case, set the T ratio to 0.50001.  Due to
+constraints of the model, there is no way to deal with a ratio less 
+than 0.5 (preference for transversions).
+
+     The F option determines whether the base frequencies are estimated from
+the data or input by the user.  If it is toggled to allow user input,
+the program will prompt for base frequencies:  these should be entered
+on one line separated by blanks.  They should be positive fractions
+summing to 1.0.  The program will not work correctly if any frequency
+is 0; if you wish to run it with data in which one or more nucleotides
+do not occur you must use the F option to set frequencies, and set the 
+frequency of the missing base(s) to a very low value.  You should also
+set the transition/transversion ratio very high to reflect the presumed 
+lack of transversions.  For example, if you wish to run a data set 
+containing only purines, you can use the F option to set the frequencies of 
+the purines A and G to 0.49 and the frequencies of the (absent)
+pyrimidines C and T to 0.01, and use the T option to set the transition/
+transversion ratio to 100.0.  The program will then run correctly.  This
+approach may be useful when you have reason to expect that the neutral
+mutation rate is substantially different between purines and
+pyrimidines, and therefore wish to treat them as two separate data
+sets.
+
+     The C (categories) option allows the user to specify how many categories
+of substitution rates there will be, and what are the rates and probabilities
+for each. The user first is asked how many categories there will be (for the
+moment there is an upper limit of 5, which may be restrictive). Then the
+program asks for the rates for each category. These rates are only meaningful
+relative to each other, so that rates 1.0, 2.0, and 2.4 have the exact same
+effect as rates 2.0, 4.0, and 4.8. Note that a category can have rate of
+change 0, so that this allows us to take into account that there may be a
+category of sites that are invariant. Note that the run time of the program
+will be proportional to the number of rate categories: twice as many categories
+means twice as long a run. Finally the program will ask for the probabilities
+of a random site falling into each of these categories. These probabilities
+must be nonnegative and sum to 1. Default for the program is one category,
+with rate 1.0 and probability 1.0 (actually the rate does not matter in that
+case).
+
+     If more than one category is specified, then another option, R, becomes
+visible in the menu. This allows you to specify that you want to assume that
+sites that have the same rate category are expected to be clustered. The
+program asks for the value of the average patch length. This is an expected
+length of patches that have the same rate.  If it is 1, the rates of successive
+sites  will be independent.  If it is, say, 10.25, then the chance of change to
+a new rate will be 1/10.25 after every site. However the "new rate" is
+randomly drawn from the mix of rates, and hence could even be the same. So the
+actual observed length of patches with the same rate will be somewhat larger
+than 10.25.
+
+     The W option allows you to use an estimate of Theta by the method of
+Watterson (1975) as the initial Theta0, or provide your own.  Our
+implementation of Watterson's test counts sites with 3 different
+nucleotides as 2 changes and sites with 4 different nucleotides as 3
+changes, and will therefore produce a slightly higher estimate than 
+the alternative method of counting each variable site as 1 change.
+
+     The H option allows you to specify whether the population size is
+allowed to vary.  If it is set to N, FLUCTUATE essentially duplicates the
+behavior of COALESCE (and should be about as fast).  If it is set to Y,
+an additional option V appears which allows you to specify the initial 
+value of the growth rate (g0).  There is no available equivalent of 
+Watterson's test, so you will have to make an educated guess.  Very large 
+values, especially negative ones, may cause a crash so it is better to 
+guess initial values closer to zero (though not actually zero).
+
+     The A option allows you to hold one parameter, either Theta or
+g, constant at its initial value.  This can be useful in cases, such
+as a star phylogeny, where allowing Theta and g to co-vary explores
+a huge, flat likelihood surface and causes the program to crash.
+
+     The U option determines whether FLUCTUATE generates its own initial tree
+to start the Metropolis-Hastings process or uses a tree from the file
+"intree".  The tree generated by FLUCTUATE simply strings together all
+sequences in the order they are found in the input file, and will
+generally be an extremely poor one.  We do not recommend using it;
+results will be better with a reasonable starting tree such as a UPGMA
+tree.
+
+C.  SEARCH STRATEGY
+
+     FLUCTUATE is somewhat sensitive to the initial values of Theta0 and
+g0.  The best strategy for overcoming this sensitivity is to
+run several short chains to get good working values of the parameters, then 
+one or more long chains to refine the estimates.  Only the trees from the 
+final long chain will be written out to "treefile".  The final curve and 
+point estimates of Theta and g are based on the final long chain only.
+(This is different from the COALESCE program, which bases its
+estimate on all long chains--that approach proved too difficult for
+FLUCTUATE, except when running in COALESCE mode.)
+
+     If you wish to run only one chain, use the long chain settings and set
+the number of short chains to 0.  We don't recommend this procedure as
+it is sensitive to the choice of initial tree and initial parameters.
+
+     The sampling increment options (1 and 3) control how often trees are
+saved for use in making the estimates of Theta and g (and also how often 
+trees are saved into "treefile" during the final chain).  If you are simply
+trying to estimate parameters, it is most efficient to sample as often as 
+you can afford to (but beware:  sampled trees take up space, and space can 
+be limiting for this program).  If, however, you wish to use the 
+sampled trees as a representative set of trees (for example, as a bootstrap
+set) you should sample infrequently enough that the trees are fairly
+independent.  We recommend a sampling interval of at least 3 times the
+number of sequences in this case.  If you wish to save and use the sampled 
+trees in "treefile" you should make runs with only one locus at a time, as
+otherwise trees from all loci will be run together in the file.
+
+     The number of steps options (2 and 4) control how many genealogies are
+tried.  For efficiency these should always be multiples of the sampling
+increment (otherwise some genealogies are wasted since they
+occur after the last sample is taken).  In contrast to COALESCE, FLUCTUATE
+does not deal well with very short chains.  Chains should be at least
+several thousand steps long, and if the data set is either (a) sparse
+(few sites) or (b) highly variable (proportion of variable sites is
+large) the chains need to be longer.  The program responds to overly
+short chains by producing interim estimates of Theta and g that fluctuate
+wildly; if this behavior is seen, try increasing the chain length.
+
+5.  OUTPUT FORMAT
+
+    Results of the run are found in a file named "outfile".  After some
+information summarizing the parameters under which the run was made, 
+the program estimates the maximum of the likelihood curve, which is a 
+maximum likelihood estimate of Theta and g.  It prints a table of log
+likelihood values for an assortment of Theta and g values, which may
+help in visualizing the curve.  Also provided is the covariance 
+matrix for theta and g, and indications of approximate standard 
+deviations.  These should be taken with a *large* grain of salt:  they 
+assume that the likelihood curve is more nearly normal than it 
+generally is in practice (though, like the estimates, they improve 
+as the number of loci is increased).  Still, they can help in suggesting
+how seriously to take the results.  For many data sets the likelihood 
+surface for g (more rarely Theta) is very flat, and the estimate 
+therefore has huge error bars around it.  It is misleading to report 
+that the maximum likelihood estimate showed the population doubling 
+every generation without noting that the data do not reject the 
+hypothesis that it was halving every generation instead!
+
+    If the standard deviations are distressingly large, sometimes
+running more chains and more steps in each chain will allow a better
+estimate.
+
+    No covariances are provided if the program is running in COALESCE
+mode (constant population size).
+
+    A small table of possible interpretations of Theta and g, given
+various possible values of the neutral mutation rate, is provided to
+help make the results easier to grasp. 
+
+    The last entry for each locus is a rough ASCII plot of the shape
+of the likelihood surface.  Note that the maximum shown is the maximum
+of all values displayed in the table:  if the true maximum is outside
+the bounds of the table, a maximum will still be indicated at the
+highest point within the table.
+
+    If more than one locus was analyzed, there will also be an overall
+point estimate.  This estimate will be meaningful only if the neutral 
+mutation rate and population size for each locus were roughly comperable.  
+Beware of, for example, mixing nuclear and mitochondrial loci as the
+overall estimate will be meaningless due to the difference in effective 
+population size.  (An upcoming version should allow combination of loci
+whose Theta values differ by a known factor.)
+
+    If requested, the program will also write out the genealogies from
+the final chain of each locus into "treefile".
+
+    The program writes out the tree of highest log likelihood encountered 
+into "bestree".  This may or may not be one of the trees
+sampled for the parameter estimate.  The log likelihood of the tree with
+respect to the sequence data is indicated, as is the chain and step
+producing it.  Note that this likelihood is the likelihood of the tree
+with respect to the sequence data, as would be calculated by PHYLIP's 
+DNAMLK (and should be identical within rounding to that program's 
+evaluation of the same genealogy); not the posterior probability used to 
+make the parameter estimates.  In practice we have found that the "bestree" 
+entry is a good approximation of the maximum likelihood tree for the given 
+data set, if FLUCTUATE is run long enough.  If the best tree is of
+interest, only one locus should be run as only the best tree from the
+final locus is preserved.
+
+6.  CONSTANTS
+  
+    In the header file constants.h are several parameters which users may 
+occasionally wish to change:
+
+nmlngth    length of sequence names.  All names must be padded out
+           to this length with blanks, or truncated to fit.
+iters      how long to iterate the point estimate of Theta.  Increasing
+           this may gain precision at the cost of runtime.
+menu       whether the menu should be used.  If this is set to false,
+           the program will run silently using the parmfile and
+           seedfile, and will write out its error messages to a
+           file named simlog.  This option is provided for experienced
+           users who wish to do large-scale production runs.
+epsilon    how much accuracy to demand in estimates.  Increasing this
+           will lead to more digits of precision at the cost of
+           runtime.
+thetaout   use of "thetafile".  If this constant is set to true, an
+           additional output file containing intermediate estimates of
+           Theta and g will be written.  This is mainly meant as a debugging
+           tool, but might be useful to some users.
+onebestree contents of "bestree" file.  If onebestree is set to true,
+           only the best tree ever found by the program will be
+           retained.  If it is set to false, each tree that is better
+           than all previous trees will be appended to "bestree".  The 
+           latter option can lead to a rather large file and should be 
+           used with caution.
+MINTHETA   smallest value presented in likelihood curve.
+MAXTHETA   largest value presented in likelihood curve.
+EXPMIN     the largest number x for which exp(x) is a legal value.
+           This varies from computer to computer; the distribution
+           copy has a fairly safe value.
+
+The remaining program constants should not be changed, except that if
+the compiler constant DBL_MAX (the largest number which can be
+represented in double precision) is not available, it should be replaced
+by a suitable value (which varies depending on machine type).
+
+7.  PARAMETER FILE
+
+    Optionally, FLUCTUATE can take its default values from a parameter 
+file, "parmfile."  The user is then prompted to change them if necessary.
+This can save a lot of time when doing multiple runs with non-standard 
+settings.  If "parmfile" exists the program will use it; if not, it will 
+use its inbuilt defaults.
+    The parmfile uses keywords to indicate the program options.  Each
+keyword must be typed precisely, followed by an equals sign and the
+value it is to take, with no spaces.  If a particular option requires
+additional values, they are indicated with a colon and each additional
+value is terminated with a semicolon.  Example (meaning "Gene frequences
+are not to be calculated from the data; they are A=0.25, C=0.33, G=0.25,
+T=0.17"):
+
+    freqs-from-data=false:0.25;0.33;0.25;0.17;
+
+    The keywords can be in any order, but they should all be present.
+The majority can be set to either "true" or "false" (all lower case);
+a few require numbers instead.
+    The "interleaved", "printdata", "progress", "interactive" and 
+"print-trees" keywords control the input and output formats of the program.
+Note that you will not want to set "interactive" to true if you are
+using the program in a batch mode, as the program will stop and wait
+for user approval of its tables.
+    The "freqs-from-data" keyword controls whether base frequencies are
+computed from the data or provided by the user.  If it is set to false,
+the four base frequences must be provided in order A, C, G, T.  They
+should all be greater than zero and should sum to one.
+    The "categories" keyword determines how many categories of mutation
+rate should be assumed.  If it is set to false, one category will be
+used and no subsidiary information is needed.  If it is set to true, it
+must be followed by the number of categories and then the relative rate
+and frequency of each.  For example, to set two categories, one with a
+relative mutation rate of 1 and frequency of 95%, and the other with a
+rate of 10 and frequency of 5%, "categories=true;2;1.0;0.95;10.0;0.05;".
+    The "autocorrelation" keyword has meaning only when more than one
+category is present, and determines how long the expected runs of sites
+with the same mutation rate should be, e.g.:  "autocorrelation=true:10.0;"
+means that the average run of sites with the same rate is 10 bp.
+    The "watterson" keyword controls the use of Watterson's estimate of
+Theta as the initial value of Theta.  If it is set to false, an initial
+estimate must be supplied:  "watterson=false:0.001;"
+    The "growth-rate" keyword sets the initial value of g:
+"growth-rate=-0.5".  If this keyword is not included in the parameter
+file (and that file exists), the program will behave like COALESCE and 
+not consider the possibility of growth.
+    The "usertree" keyword determines whether the user is providing a
+starting tree.  If it is set to true, the file "intree" will be expected
+to contain the starting tree.  If it is false, the program will generate
+a starting tree.
+    The "ttratio" keyword sets the transition-transversion ratio, and
+expects a number ("ttratio=2.0").
+    Keywords "short-chains", "short-inc", and "short-steps"
+control, respectively, the number of short chains to run, the number of 
+trees to skip between samples when running short chains, and the number of
+steps to run in each short chain.  They expect integers.  Keywords
+"long-chains", "long-inc", and "long-steps" control the same parameters 
+for long chains.
+    The parmfile must end with the word "end" on a line by itself.
+
+8.  TIME AND SPACE
+
+     We have successfully run COALESCE on our DEC workstation with 
+800+ sequences, although it is not clear how many iterations are 
+needed to do an adequate job of searching the very large space 
+of possible genealogies in such a case.  FLUCTUATE is more space
+and time intensive, but should still be practical for fairly large data
+sets.  Runtime (for a given number of iterations) goes up less than 
+linearly with number of sequences, and much less than linearly with 
+number of sites.  For FLUCTUATE the time needed to do the final parameter
+estimation is a substantial proportion of the total time.  If the program 
+runs quickly and then seems to bog down at the very end, consider reducing 
+the frequency with which trees are sampled.
+     FLUCTUATE is unusually fast for a likelihood program because (a) it does
+not attempt to optimize branch lengths, and (b) it does not re-evaluate
+the entire likelihood at each cycle, but only the terms which are
+affected by the rearrangement.  In practice we find that computer
+memory, not run time, is limiting.  FLUCTUATE will probably not be 
+very useful on a machine with less than 16 megabytes, and some work may 
+be needed to get it to run on small machines such as 386/486 PCs (such
+as installing a memory manager).
+
+10.  PAST, FUTURE AND CREDITS
+
+     FLUCTUATE is a modification of program COALESCE, which was written 
+by Mary Kuhner and Jon Yamato by cannibalizing code from DNAML (written 
+by Joseph Felsenstein) and translated into C by Sean Lamont.  We thank 
+Peter Beerli for debugging assistance.  This work was supported by 
+National Science Foundation grants BSR-8918333 and DEB-9207558 and 
+National Institute of Health grant 2-R55GM41716-04, all to Joseph
+Felsenstein.
+
+12.  DISTRIBUTION
+
+     This program is available as part of the LAMARC package by anonymous FTP
+from evolution.genetics.washington.edu in directory /pub/lamarc.
+C source code is currently available and we hope to have Mac executables
+soon:  if anyone would like to construct DOS executables we will cheerfully
+distribute them.
+     PLEASE register your copy via email to mkkuhner@genetics.washington.edu,
+so that we can reach you with bug fixes and other information.  Questions
+and bug reports can be sent to the same address.
+     We do not have the resources to do diskette distribution of this
+program; please don't send or request diskettes unless there is
+*absolutely* no way you can retrieve the program electronically (i.e. 
+you live in a country with no access to the Internet).
+
+13.  REFERENCES
+
+Kuhner, M. K., J. Yamato and J. Felsenstein, 1995  Estimating effective
+population size and neutral mutation rate from sequence data using
+Metropolis-Hastings sampling.  Genetics 140:1421-1430.
+
+Kuhner, M. K., J. Yamato and J. Felsenstein, 1996  Using Metropolis-
+Hastings sampling to estimate population growth rates.  In preparation.
+
+Watterson, G. A., 1975  On the number of segregating sites in genetical
+models without recombination.  Theor. Pop. Biol. 7:256-276.
+
+14.  SAMPLE CASE
+
+     Sample input and output files are included with this distribution.
+The sample case presented takes approximately 22 minutes on our elderly
+DEC workstation.  Note that a larger set will not take proportionally
+longer:  we regularly run data sets of 50-100 sequences.
+     The random number seed for the sample run was 3181.  If the Progress
+option is turned on, progress reports should be visible almost
+immediately.
