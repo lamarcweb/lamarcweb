@@ -1,0 +1,557 @@
+COALESCE -- Metropolis-Hastings Markov Chain Monte Carlo genealogy
+sampler
+
+For use in cases without recombination, selection or migration and with 
+constant population size.
+
+Version 1.5 beta, September 7, 1995
+
+WARNING:  All versions of this program previous to 1.0 beta contained
+serious errors in the likelihood calculations.  Please do not use
+earlier versions or results produced by them.
+
+This docoment contains:
+0.  Changes for version 1.5
+1.  Description of COALESCE
+2.  Compiling the program
+3.  Input files
+4.  Menu 
+5.  Output files
+6.  Program constants
+7.  Parameter file
+8.  Time and Space
+9.  Past, future and credits
+10. Distribution
+11. References
+12. Sample files
+
+Troubleshooting advice is in a separate file, errors.doc.
+
+0.  CHANGES FOR VERSION 1.5
+
+As of 1.5:
+
+    The Categories option now works (in previous versions it appeared to
+work, but actually did nothing).  The G option for printing out the
+genealogies also works.
+
+As of 1.3:
+
+    Multiple loci can now be presented to the program, and it will
+attempt to make a joint estimate of theta over all loci.  This will have
+misleading results unless the mutation rate is roughly the same over all
+loci:  it is not a good idea to combine coding and noncoding sequences
+for this test.  
+    Several bugs which made very large samples (>400 sequences) fail
+have been fixed.  This version will run with 800 sequences on our
+DECstation.
+     
+1.  DESCRIPTION OF COALESCE
+
+     This program takes as input a set of aligned DNA or RNA sequences
+from different individuals in a population and uses them to make a maximum 
+likelihood estimate of the parameter "theta," using the method described
+in Kuhner et al. (1995).  Theta is defined as 4 times the
+effective population size times the mutation rate in a diploid organism,
+or 2 times the effective population size times the mutation rate in a
+haploid.  (Note that this is mutation rate per site, not per locus.)
+     COALESCE assumes that the sampled population is of constant size,
+and that the loci sampled are not affected by selection or 
+recombination.  If these assumptions are violated the results 
+may be erroneous.  The algorithm begins with a genealogy for
+the sequences and sequentially makes modifications in it, accepting 
+or rejecting the modifications based on the sequence data, and
+sampling the current genealogy at intervals.  From the sampled
+genealogies it constructs a likelihood curve and maximum likelihood
+estimate for theta.  The aim is to preferentially sample those
+genealogies which can contribute substantial information to the estimate
+of theta, avoiding the myriads of possible but unlikely and thus
+uninformative genealogies.  If more than one locus is analyzed,
+likelihoods from all loci are summed to make an overall likelihood curve
+and estimate of theta.
+    The basic unit of progress of the program is a "step"--one proposed
+change to the genealogy, which may be accepted or rejected.  A continuous 
+series of steps, all using the same parameter values, is a "chain".  
+
+2.  COMPILING THE PROGRAM
+
+    COALESCE is written in C.  It uses some ANSI standard conventions 
+(most notably function prototyping) that are not found in earlier 
+versions of C:  a separate version of the program (ocoalesce.c) is 
+provided for those with archaic C compilers.  (Our experience is that 
+most Sun systems will require use of the ocoalesce.c form.)
+    For UNIX systems a Makefile is provided, and the program can be
+compiled by typing simply "make coalesce".  Users of other operating
+systems will need to use the appropriate commands to link in the math
+library and header files.
+    You may need to allocate additional heap or stack space when
+compiling this program as it uses an enormous amount of space,
+especially with large numbers of sequences.
+    We have successfully compiled and run COALESCE on a DECstation 5000
+running Ultrix (using both native cc and GNU's gcc compiler) and on a 
+386 PC running DOS (using WATCOM C).  The ocoalesce.c form has been
+successfully compiled and run on Sun Sparcstations running SunOS and Solaris
+using the native cc.
+
+3.  INPUT FILES
+
+    Minimum input for COALESCE is a single file, "infile", containing the
+aligned sequences.  Three other input files, "intree", "parmfile" and
+"seedfile", are optional--the program will use them if they are present,
+but does not require them.
+
+A.  "infile"
+
+     COALESCE expects as input a file named "infile" containing aligned 
+nucleotide sequences in one of two formats:  interleaved (first line of
+all sequences, second line of all sequences, etc.) or sequential (all 
+of sequence 1, then all of sequence 2, etc.).  The first line of the
+file gives the number of loci.   After that, the loci are presented one
+at a time, each introduced by a single line which gives the number of 
+sequences at that locus and the number of sites in each sequence.
+There is no requirement that each locus contain sequences from the same
+individuals.  Note that each sequence must have a ten character name 
+(padded out with blanks if necessary) and these names must match the names 
+in the tree for the locus, if a tree is provided. 
+     Sequences may contain blanks, but may not end with blanks, and
+blank cannot be used to indicate a deletion (use X, N or ? instead).
+The standard ambiguity symbols are available.  RNA and DNA are both
+accepted.
+
+B.  "intree"
+     If the user wishes to provide starting genealogies for COALESCE, they
+should be placed in the file "intree" in standard format (see sample
+files).  The input trees *must* have clocklike branch lengths, and their
+sequence names must be identical to those used in "infile".  COALESCE
+can construct its own starting genealogy, but does so in a very
+arbitrary way:  results may be improved by providing a reasonable
+starting genealogy such as a UPGMA tree of the sequences.
+
+C.  "parmfile"
+    To reduce the number of menu options that have to be set each run,
+the user can create a file "parmfile" giving defaults for the menu
+settings.  The parmfile is discussed in more length in section 7, since
+it is not necessary to running the program.
+ 
+D.  "seedfile"
+    Normally COALESCE prompts for a random number seed at the beginning
+of each run, but if "seedfile" is present it will be used instead.  The
+file should contain a single integer number of the form 4n+1 (that is,
+one greater than a multiple of four).  COALESCE does not update this
+file.
+
+4.  MENU
+
+A sample menu:
+
+Hastings-Metropolis Markov Chain Monte Carlo method, version 1.3
+
+INPUT/OUTPUT FORMATS
+  I          Input sequences interleaved?  No, sequential
+  E        Echo the data at start of run?  No
+  P Print indications of progress of run?  Yes
+  G                Print out genealogies?  No
+MODEL PARAMETERS
+  T        Transition/transversion ratio:    2.0000
+  F       Use empirical base frequencies?  No
+  C   One category of substitution rates?  Yes
+  W      Use Watterson estimate of theta?  Yes
+  U      Use user tree in file "intree" ?  No
+SEARCH STRATEGY
+  S        Number of short chains to run?      10
+  1             Short sampling increment?      10
+  2   Number of steps along short chains?     200
+  L         Number of long chains to run?       2
+  3              Long sampling increment?      20
+  4    Number of steps along long chains?   20000
+
+Are these settings correct? (type Y or the letter for one to change)
+ 
+     Unless a file "seedfile" is present, the program will prompt for a
+random number seed before displaying the menu.  The random number
+generator used is deterministic, so two runs with the same seed and
+parameters will be identical.  Seeds should be of the form 4n+1, that is
+they should be one greater than a multiple of 4.  If "seedfile" exists
+the program will read its seed from that file and will not prompt for
+one.
+
+A.  INPUT/OUTPUT FORMATS
+
+     The I option controls whether the input sequences are in interleaved or
+sequential format (see Input Formats).  The E option allows you to print
+the sequence data at the beginning of the output, which can be useful
+for verifying that it has been read correctly.  The P option will produce 
+voluminous text tracing the progress of the run; this is useful if you don't 
+know how long the program will take and want to keep an eye on its progress.  
+The G option determines whether or not the genealogies from the final 
+run will be written out into "treefile".
+
+B.  MODEL PARAMETERS
+
+     T controls the ratio of transitions to transversions; a ratio of 2.0
+means that transitions are twice as likely as transversions.  Due to a
+limitation of the model used, a transition/transversion ratio of 0.5
+(corresponding to no preference for transitions) will cause an error.
+If you wish to test this case, set the T ratio to 0.50001.  Due to
+constraints of the model, there is no way to deal with a ratio less 
+than 0.5 (preference for transversions).
+
+     The F option determines whether the base frequencies are estimated from
+the data or input by the user.  If it is toggled to allow user input,
+the program will prompt for base frequencies:  these should be entered
+on one line separated by blanks.  They should be positive fractions
+summing to 1.0.  The program will not work correctly if any frequency
+is 0; if you wish to run it with data in which one or more nucleotides
+do not occur you must use the F option to set frequencies, and set the 
+frequency of the missing base(s) to a very low value.  You should also
+set the transition/transversion ratio very high to reflect the presumed 
+lack of transversions.  For example, if you wish to run a data set 
+containing only purines, you can use the F option to set the frequencies of 
+the purines A and G to 0.49 and the frequencies of the (absent)
+pyrimidines C and T to 0.01, and use the T option to set the transition/
+transversion ratio to 100.0.  The program will then run correctly.  This
+approach may be useful when you have reason to expect that the neutral
+mutation rate is substantially different between purines and
+pyrimidines, and therefore wish to treat them as two separate data
+sets.
+     The C (categories) option allows the user to specify how many categories
+of substitution rates there will be, and what are the rates and probabilities
+for each. The user first is asked how many categories there will be (for the
+moment there is an upper limit of 5, which may be restrictive). Then the
+program asks for the rates for each category. These rates are only meaningful
+relative to each other, so that rates 1.0, 2.0, and 2.4 have the exact same
+effect as rates 2.0, 4.0, and 4.8. Note that a category can have rate of
+change 0, so that this allows us to take into account that there may be a
+category of sites that are invariant. Note that the run time of the program
+will be proportional to the number of rate categories: twice as many categories
+means twice as long a run. Finally the program will ask for the probabilities
+of a random site falling into each of these categories. These probabilities
+must be nonnegative and sum to 1. Default for the program is one category,
+with rate 1.0 and probability 1.0 (actually the rate does not matter in that
+case).
+     If more than one category is specified, then another option, R, becomes
+visible in the menu. This allows you to specify that you want to assume that
+sites that have the same rate category are expected to be clustered. The
+program asks for the value of the average patch length. This is an expected
+length of patches that have the same rate.  If it is 1, the rates of successive
+sites  will be independent.  If it is, say, 10.25, then the chance of change to
+a new rate will be 1/10.25 after every site. However the "new rate" is
+randomly drawn from the mix of rates, and hence could even be the same. So the
+actual observed length of patches with the same rate will be somewhat larger
+than 10.25.
+     The W option allows you to use an estimate of theta by the method of
+Watterson (1975) as the initial theta0, or provide your own.  Our
+implementation of Watterson's test counts sites with 3 different
+nucleotides as 2 changes and sites with 4 different nucleotides as 3
+changes, and will therefore produce a slightly higher estimate than 
+the alternative method of counting each variable site as 1 change.
+     The U option determines whether COALESCE generates its own initial tree
+to start the Metropolis-Hastings process or uses a tree from the file
+"intree".  The tree generated by COALESCE simply strings together all
+sequences in the order they are found in the input file, and will
+generally be an extremely poor one.  We do not recommend using it;
+results will be better with a reasonable starting tree such as a UPGMA
+tree.
+
+C.  SEARCH STRATEGY
+
+     COALESCE is somewhat sensitive to the initial value of theta0
+assumed.  The best strategy for overcoming this sensitivity is to
+run several short chains to get a good working value of theta0, then one 
+or more long chains to refine the estimate.  Only the trees from the 
+final long chain will be written out to "treefile".  The final curve and 
+point estimate of theta are based on all the long chains, using
+a weighting scheme due to Geyer (1991).
+     If you wish to run only one chain, use the long chain settings and set
+the number of short chains to 0.  We don't recommend this procedure as
+it is sensitive to the choice of initial tree and initial theta.
+     The sampling increment options (1 and 3) control how often trees are
+saved for use in making the estimate of theta (and also how often trees
+are saved into "treefile" during the final chain).  If you are simply
+trying to estimate theta, it is most efficient to sample as often as you
+can afford to (but beware:  sampled trees take up space, and space can 
+be limiting for this program).  If, however, you wish to use the 
+sampled trees as a representative set of trees (for example, as a bootstrap
+set) you should sample infrequently enough that the trees are fairly
+independent.  We recommend a sampling interval of at least 3 times the
+number of sequences in this case.  If you wish to save and use the sampled 
+trees in "treefile" you should make runs with only one locus at a time, as
+otherwise trees from all loci will be run together in the file.
+     The number of steps options (2 and 4) control how many genealogies are
+tried.  For efficiency these should always be multiples of the sampling
+increment (otherwise the last few genealogies are wasted since they
+occur after the last sample is taken).  We find that the short chains
+can usefully be very short--a few hundred steps--since their function is
+simply to get the genealogy and theta0 into the right ballpark.  Unfortunately
+we don't have solid figures on how many steps to do in the long chains,
+except that it must increase as the number of sequences increases.  For
+50 sequences we have achieved good results with 10,000-20,000
+iterations divided over one or two long chains.
+
+5.  OUTPUT FORMAT
+
+    Results of the run are found in a file named "outfile".  After some
+information summarizing the parameters under which the run was made, it
+will give a table for each locus showing the log likelihood of the sampled 
+genealogies at various values of theta.  These values include the theta0 
+value of each chain and some predetermined points to make the curve clearer. 
+The program also estimates the maximum of the curve, which
+is a maximum likelihood estimate of theta.  Users are encouraged to look
+at the curve as well as the point estimate, since it provides useful
+information about the error inherent in the estimate.  A log-likelihood
+difference of approximately 2 corresponds to significance at the 95%
+level.
+    When more than one chain is run, the curve may have multiple peaks,
+up to one per chain, although they will generally be very close
+together.  In this case, the program will attempt to find the highest
+peak in calculating the point estimate.
+    If more than one locus was analyzed, there will also be an overall
+likelihood curve and overall point estimate.  This estimate will be
+meaningful only if the neutral mutation rate and population size for
+each locus were roughly comperable.  Beware of, for example, mixing
+nuclear and mitochondrial loci as the overall estimate will be
+meaningless.
+    If requested, the program will also write out the genealogies from
+the final chain of each locus into "treefile".
+    The program writes out the tree of highest log likelihood encountered 
+into "bestree".  This may or may not be one of the trees
+sampled for the theta estimate.  The log likelihood of the tree with
+respect to the sequence data is indicated, as is the chain and step
+producing it.  Note that this likelihood is the likelihood of the tree
+with respect to the sequence data, as would be calculated by PHYLIP's 
+DNAMLK (and should be identical within rounding to that program's 
+evaluation of the same genealogy); not the posterior probability used to 
+make the estimate of theta.  In practice we have found that the "bestree" 
+entry is a good approximation of the maximum likelihood tree for the given 
+data set, if COALESCE is run long enough.  If the bestree is of
+interest, only one locus should be run as only the best tree from the
+final locus is preserved.
+
+6.  CONSTANTS
+  
+    In the header file constants.h are several parameters which users may 
+occasionally wish to change:
+
+nmlngth    length of sequence names.  All names must be padded out
+           to this length with blanks, or truncated to fit.
+iters      how long to iterate the point estimate of theta.  Increasing
+           this may gain precision at the cost of runtime.
+menu       whether the menu should be used.  If this is set to false,
+           the program will run silently using the parmfile and
+           seedfile, and will write out its error messages to a
+           file named simlog.  This option is provided for experienced
+           users who wish to do large-scale production runs.
+epsilon    how much accuracy to demand in estimates.  Increasing this
+           will lead to more digits of precision at the cost of
+           runtime.
+thetaout   use of "thetafile".  If this constant is set to true, an
+           additional output file containing intermediate estimates of
+           theta will be written.  This is mainly meant as a debugging
+           tool, but might be useful to some users.
+onebestree contents of "bestree" file.  If onebestree is set to true,
+           only the best tree ever found by the program will be
+           retained.  If it is set to false, each tree that is better
+           than all previous trees will be appended to "bestree".  The 
+           latter option can lead to a rather large file and should be 
+           used with caution.
+MINTHETA   smallest value presented in likelihood curve.
+MAXTHETA   largest value presented in likelihood curve.
+EXPMIN     the largest number x for which exp(x) is a legal value.
+           This varies from computer to computer; the distribution
+           copy has a fairly safe value.
+
+The remaining program constants should generally not be changed.
+
+7.  PARAMETER FILE
+
+    Optionally, COALESCE can take its default values from a parameter 
+file, "parmfile."  The user is then prompted to change them if necessary.
+This can save a lot of time when doing multiple runs with non-standard 
+settings.  If "parmfile" exists the program will use it; if not, it will 
+use its inbuilt defaults.
+    The parmfile uses keywords to indicate the program options.  Each
+keyword must be typed precisely, followed by an equals sign and the
+value it is to take, with no spaces.  If a particular option requires
+additional values, they are indicated with a colon and each additional
+value is terminated with a semicolon.  Example (meaning "Gene frequences
+are not to be calculated from the data; they are A=0.25, C=0.33, G=0.25,
+T=0.17"):
+
+    freqs-from-data=false:0.25;0.33;0.25;0.17;
+
+    The keywords can be in any order, but they should all be present.
+The majority can be set to either "true" or "false" (all lower case);
+a few require numbers instead.
+    The "interleaved", "printdata", "progress" and "print-trees" keywords 
+control the input and output formats of the program.
+    The "freqs-from-data" keyword controls whether base frequencies are
+computed from the data or provided by the user.  If it is set to false,
+the four base frequences must be provided in order A, C, G, T.  They
+should all be greater than zero and should sum to one.
+    The "categories" keyword determines how many categories of mutation
+rate should be assumed.  If it is set to false, one category will be
+used and no subsidiary information is needed.  If it is set to true, it
+must be followed by the number of categories and then the relative rate
+and frequency of each.  For example, to set two categories, one with a
+relative mutation rate of 1 and frequency of 95%, and the other with a
+rate of 10 and frequency of 5%, "categories=true;2;1.0;0.95;10.0;0.05;".
+    The "autocorrelation" keyword has meaning only when more than one
+category is present, and determines how long the expected runs of sites
+with the same mutation rate should be, e.g.:  "autocorrelation=true:10.0;"
+means that the average run of sites with the same rate is 10 bp.
+    The "watterson" keyword controls the use of Watterson's estimate of
+theta as the initial value of theta.  If it is set to false, an initial
+estimate must be supplied:  "watterson=false:0.001;"
+    The "usertree" keyword determines whether the user is providing a
+starting tree.  If it is set to true, the file "intree" will be expected
+to contain the starting tree.  If it is false, the program will generate
+a starting tree.
+    The "ttratio" keyword sets the transition-transversion ratio, and
+expects a number ("ttratio=2.0").
+    Keywords "short-chains", "short-inc", and "short-steps"
+control, respectively, the number of short chains to run, the number of 
+trees to skip between samples when running short chains, and the number of
+steps to run in each short chain.  They expect integers.  Keywords
+"long-chains", "long-inc", and "long-steps" control the same parameters 
+for long chains.
+    The parmfile must end with the word "end" on a line by itself.
+
+8.  TIME AND SPACE
+
+     Version 1.3 incorporates several changes to speed up the program
+and reduce its space demands.  We have successfully run cases on our DEC
+workstation with 800+ sequences, although it is not clear how many
+iterations are needed to do an adequate job of searching the very large
+space of possible genealogies in such a case.  Runtime (for a given
+number of iterations) goes up less than linearly with number of sequences, 
+and much less than linearly with number of sites.
+     COALESCE is unusually fast for a likelihood program because (a) it does
+not attempt to optimize branch lengths, and (b) it does not re-evaluate
+the entire likelihood at each cycle, but only the terms which are
+affected by the rearrangement.  In practice we find that computer
+memory, not run time, is limiting.  COALESCE will probably not be 
+very useful on a machine with less than 16 megabytes, and some work may 
+be needed to get it to run on small machines such as 386/486 PCs (such
+as installing a memory manager).
+
+10.  PAST, FUTURE AND CREDITS
+
+     COALESCE was written by Mary Kuhner and Jon Yamato by cannibalizing
+code from DNAML (written by Joe Felsenstein), and translated into C by
+Sean Lamont.  We thank Peter Beerli for debugging assistance and Richard
+Hudson for testing.  This work was supported by National Science Foundation 
+grants BSR-8918333 and DEB-9207558 and National Institute of
+Health grant 2-R55GM41716-04, all to Joseph Felsenstein.
+     We are very interested in hearing about problems with this
+program; however, we offer sympathy but very little chance of help to
+those who can't get it to run due to memory size limits.  It has been
+slimmed down as far as we know how, but storing information on thousands
+of sampled genealogies is intrinsically space intensive.
+
+12.  DISTRIBUTION
+
+     This program is available as part of the LAMARC package by anonymous FTP
+from evolution.genetics.washington.edu in directory /pub/coalescent.
+Currently we are only providing source code, not executables:  you will
+need access to a C compiler to use these programs.
+     PLEASE register your copy via email to mkkuhner@genetics.washington.edu,
+so that we can reach you with bug fixes and other information.  Questions
+and bug reports can be sent to the same address.
+     We do not have the resources to do diskette distribution of this
+program; please don't send or request diskettes unless there is
+*absolutely* no way you can retrieve the program electronically (i.e. 
+you live in a country with no access to the Internet).
+
+13.  REFERENCES
+
+Geyer, C. J., 1991  Estimating normalizing constants and reweighting
+mixtures in Markov Chain Monte Carlo.  Technical Report No. 568, School
+of Statistics, University of Minnesota.
+
+Kuhner, M. K., J. Yamato and J. Felsenstein, 1994  Estimating effective
+population size and neutral mutation rate from sequence data using
+Metropolis-Hastings sampling.  Genetics submitted.
+
+Watterson, G. A., 1975  On the number of segregating sites in genetical
+models without recombination.  Theor. Pop. Biol. 7:256-276.
+
+14.  SAMPLE FILES
+
+     The sample case presented takes approximately 6 minutes on our DEC
+workstation.  Note that a larger set will not take proportionally
+longer:  we regularly run data sets of 50-100 sequences.
+     The random number seed for the sample run was 101.  If the Progress
+option is turned on, progress reports should be visible almost
+immediately.
+
+------SAMPLE INFILE-----------
+1
+5 20
+Alpha     ATCGCGTCGATCGTAGTTGC
+Beta      ATCCCGTCGATCGTAGTTGC
+Gamma     ATCGCGTTTTTCGTAGTTGC
+Delta     ATCGCGTCGTTCGTAGATGC
+Epsilon   ATCGCGTCGTTCGTAGTTGA
+------SAMPLE INTREE-----------
+(((Alpha:0.02655,Beta:0.02655):0.04755,(Delta:0.05675,Epsilon:0.05675)
+:0.01735):0.02347,Gamma:0.09757);
+------SAMPLE PARMFILE-----------
+interleaved=false
+printdata=false
+progress=true
+print-trees=false
+freqs-from-data=false:0.25;0.25;0.25;0.25;
+categories=false
+watterson=true
+usertree=false
+ttratio=2.0
+short-chains=10
+short-inc=10
+short-steps=200
+long-chains=2
+long-inc=20
+long-steps=20000
+end
+------SAMPLE OUTFILE----------
+
+Hastings-Metropolis Monte Carlo ML method, version 1.3
+
+Locus 1
+
+   5 Sequences,   20 Sites
+
+Base Frequencies:
+
+   A       0.25000
+   C       0.25000
+   G       0.25000
+  T(U)     0.25000
+Transition/transversion ratio =   2.000000
+(Transition/transversion parameter =   1.500000)
+
+Watterson estimate of theta is  0.14400000
+Single chain point estimate of theta (from final chain)=  0.22163024
+Combined point estimate of theta =   0.22366490, lnL =   0.00155245
+
+ There were  10 short runs; each producing     20.0 trees
+ There were   2 long runs; each producing   1000.0 trees
+
+   Theta       LnL
+   -----       ---
+  0.00100000  -147.01726020
+  0.00200000  -68.99243742
+  0.00500000  -24.17915318
+  0.01000000  -10.79131736
+  0.02000000   -5.38520829
+  0.05000000   -2.36182016
+  0.10000000   -0.72533856
+  0.19932573   -0.01270310
+  0.20000000   -0.01187544
+  0.22366490    0.00155245
+  0.22817770    0.00112926
+  0.50000000   -0.63627222
+  1.00000000   -2.06294279
+  2.00000000   -4.07067151
+  5.00000000   -7.24483334
+ 10.00000000   -9.84834246
+
