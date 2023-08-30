@@ -1,0 +1,314 @@
+<lamarc version="2.1.3">
+<!-- Created by the Lamarc program -->
+  <chains>
+    <replicates>1</replicates>
+    <bayesian-analysis>Yes</bayesian-analysis>
+    <heating>
+      <adaptive>false</adaptive>
+      <temperatures> 1</temperatures>
+      <swap-interval>10</swap-interval>
+    </heating>
+    <strategy>
+      <resimulating>0.454545</resimulating>
+      <tree-size>0.0909092</tree-size>
+      <haplotyping>0</haplotyping>
+      <trait-arranger>0</trait-arranger>
+      <bayesian>0.454545</bayesian>
+    </strategy>
+    <initial>
+      <number>0</number>
+      <samples>500</samples>
+      <discard>100</discard>
+      <interval>20</interval>
+    </initial>
+    <final>
+      <number>1</number>
+      <samples>7000</samples>
+      <discard>100</discard>
+      <interval>20</interval>
+    </final>
+  </chains>
+  <format>
+    <convert-output-to-eliminate-zero> No </convert-output-to-eliminate-zero>
+    <verbosity>normal</verbosity>
+    <progress-reports>normal</progress-reports>
+    <results-file>outfile.txt</results-file>
+    <use-in-summary>false</use-in-summary>
+    <in-summary-file>insumfile.xml</in-summary-file>
+    <use-out-summary>false</use-out-summary>
+    <out-summary-file>outsumfile.xml</out-summary-file>
+    <use-curvefiles>true</use-curvefiles>
+    <curvefile-prefix>curvefile</curvefile-prefix>
+    <use-tracefile>true</use-tracefile>
+    <tracefile-prefix>tracefile</tracefile-prefix>
+    <use-newicktreefile>false</use-newicktreefile>
+    <newicktreefile-prefix>newick</newicktreefile-prefix>
+    <out-xml-file>menusettings_infile.xml</out-xml-file>
+  </format>
+  <forces>
+    <coalescence>
+      <start-values> 0.01 0.01 0.01</start-values>
+      <method> PROGRAMDEFAULT PROGRAMDEFAULT PROGRAMDEFAULT</method>
+      <profiles> percentile percentile percentile </profiles>
+      <constraints> unconstrained unconstrained unconstrained </constraints>
+      <prior type="log">
+        <paramindex> all </paramindex>
+        <lower> 1e-05 </lower>
+        <upper> 10 </upper>
+      </prior>
+    </coalescence>
+    <migration>
+      <start-values> 0 100 100 100 0 100 100 100 0</start-values>
+      <method> PROGRAMDEFAULT FST FST FST PROGRAMDEFAULT FST FST FST PROGRAMDEFAULT</method>
+      <max-events>10000</max-events>
+      <profiles> none percentile percentile percentile none percentile percentile percentile none </profiles>
+      <constraints> invalid unconstrained unconstrained unconstrained invalid unconstrained unconstrained unconstrained invalid </constraints>
+      <prior type="log">
+        <paramindex> all </paramindex>
+        <lower> 0.01 </lower>
+        <upper> 1000 </upper>
+      </prior>
+    </migration>
+  </forces>
+  <data>
+    <region name="LPL">
+      <model name="F84">
+        <normalize>false</normalize>
+        <categories>
+          <num-categories>1</num-categories>
+          <rates> 1</rates>
+          <probabilities> 1</probabilities>
+          <autocorrelation>1</autocorrelation>
+        </categories>
+        <relative-murate>1</relative-murate>
+        <base-freqs> calculated </base-freqs>
+        <ttratio>2</ttratio>
+      </model>
+      <effective-popsize>1</effective-popsize>
+      <spacing>
+        <block>
+          <map-position>0</map-position>
+          <length>9731</length>
+          <locations> 105 109 144 324 342 478 550 735 1215 1219 1285 1546 1570 1755 1827 1938 1960 2130 2499 2588 2618 2637 2848 2986 2995 3021 3247 3289 3296 3552 3608 3722 3842 4015 4201 4342 4345 4417 4425 4508 4575 4822 4871 4906 4934 5084 5167 5370 5394 5440 5553 5559 5686 6175 6195 6202 6249 6282 6594 6677 6717 6759 6771 6792 6839 6862 6938 7311 7340 7356 7409 7750 8084 8085 8281 8288 8389 8498 8529 8533 8534 8640 8751 8848 9036 9398 9708 9717</locations>
+          <offset>0</offset>
+        </block>
+      </spacing>
+    <population name="north karelia">
+      <individual name="N20-1">
+        <sample name="N20-1_0">
+          <datablock type="SNP">
+            CAGTNTNCCTCAGACAACGCACATCGCNNCTTGCGACCTCANACTGTGNTAGTGCATCGTAGATTCNGAGTCNGCNTGAANTATCAGG
+          </datablock>
+        </sample>
+      </individual>
+      <individual name="N20-7">
+        <sample name="N20-7_0">
+          <datablock type="SNP">
+            CAGTNTNTCTCACACAACGCACATCGCNNCTCACGTCTTTANACTGTGNTAGTGCATCGTAGATTCNGAGTCNGCNTGAANTATCAGG
+          </datablock>
+        </sample>
+      </individual>
+      <individual name="N21-62">
+        <sample name="N21-62_0">
+          <datablock type="SNP">
+            CAGTNTNCCTCAGACAACGCACATCGCNNCTTGCGACCTCANGCCGCGNCCGCGCACCCGGGATTTNCAATANGCAGGCANTGGCAAA
+          </datablock>
+        </sample>
+      </individual>
+      <individual name="N21-63">
+        <sample name="N21-63_0">
+          <datablock type="SNP">
+            CAGTNTNCCTCAGACAACGCACATCGCNNCTTGCGACCTTTNGCCGCGNTCGCGCACCGGGGATTCNGAATCNTCAGGCANCGGCAAA
+          </datablock>
+        </sample>
+      </individual>
+      <individual name="N22-6">
+        <sample name="N22-6_0">
+          <datablock type="SNP">
+            AAGTNTNTNNTACACAATACACAGCACNNCTTGCGTCCTTANGCCGCGNCCGCGCACCNGGGATTTNCAATANGCAGGCANTGGCAAA
+          </datablock>
+        </sample>
+      </individual>
+      <individual name="N22-65">
+        <sample name="N22-65_0">
+          <datablock type="SNP">
+            CAGTNTNCNNCAGACAACGCACATCGCNNCTTGCGTCCTCANGCCGCGNCCGCGCACCNGGGATTTNCAATANGCAGGCANTGGCAAA
+          </datablock>
+        </sample>
+      </individual>
+      <individual name="N23-4">
+        <sample name="N23-4_0">
+          <datablock type="SNP">
+            CAGTNTNCCTCAGACAACGCACATCGCNNCTTGCGTCTTTANACTGTGNTAGTGCATCGTAGATTCNGAGTCNGCCTGAANTATCAGG
+          </datablock>
+        </sample>
+      </individual>
+      <individual name="N23-66">
+        <sample name="N23-66_0">
+          <datablock type="SNP">
+            CAGTNTNTCTCACACAACGCACATAGCNNCTCACGACCTTTNGCCGCGNTCGCGCACCGGGGATTCNGAGTCNTCCGGCANCGGCAGG
+          </datablock>
+        </sample>
+      </individual>
+      <individual name="N24-9">
+        <sample name="N24-9_0">
+          <datablock type="SNP">
+            CAGTNTNCCTCAGACAACGCACATCGCNNCTTGCGACCTCANACTGCGNTAGNGCATCGTAGATTCNGAGTCNGCATGNNNTATCAGG
+          </datablock>
+        </sample>
+      </individual>
+      <individual name="N24-67">
+        <sample name="N24-67_0">
+          <datablock type="SNP">
+            CAATNTNTCTCACACAACGCACATCGCNNCTTGCGAGCTTANGCCGCGNTAGNGCATCCGGGATTTNCAGTANGCAGGNNNTGGCAAA
+          </datablock>
+        </sample>
+      </individual>
+    </population>
+    <population name="rochester">
+      <individual name="R20-2">
+        <sample name="R20-2_0">
+          <datablock type="SNP">
+            CAGTNTNCCTCAGACAACGCACATCGCNNCTTGCGACCTNANACTGTGNTAGTACATCGTAGATTCNGAGTCNGCATGAANTATCAGG
+          </datablock>
+        </sample>
+      </individual>
+      <individual name="R20-84">
+        <sample name="R20-84_0">
+          <datablock type="SNP">
+            CAGCNTNCCTCACACAACGCACATCGCNNCTTGCGTCCTNANGCCGCGNCCGCGCACCCGGGATTTNCAATANGCAGGCCNTGGCAAA
+          </datablock>
+        </sample>
+      </individual>
+      <individual name="R21-1">
+        <sample name="R21-1_0">
+          <datablock type="SNP">
+            CAGTNTNCCTCAGACAACGCACATCGCNNCTTGCGACCTCANACTGTGNTAGTGCNTNGTAGATTCNGAGTCNGCATGAANTATCAGG
+          </datablock>
+        </sample>
+      </individual>
+      <individual name="R21-85">
+        <sample name="R21-85_0">
+          <datablock type="SNP">
+            CAGTNTNTCTCACACAACGCACAGAGCNNCTCACGTCTTTANACTGTGNTAGTGCNTNGTAGATTCNGAGTCNGCCTGAANTATCAGG
+          </datablock>
+        </sample>
+      </individual>
+      <individual name="R22-2">
+        <sample name="R22-2_0">
+          <datablock type="SNP">
+            CAGTNTNCCTCAGACAACGCACATCGCNNCTTGCGACCTCANACTGTGNTAGTGCATCNTAGATTCNGAGTCNGCNTGAANTATCAGG
+          </datablock>
+        </sample>
+      </individual>
+      <individual name="R22-6">
+        <sample name="R22-6_0">
+          <datablock type="SNP">
+            AAGTNTNTGCTACACAATACACAGCACNNCTTGCGTCCTTANGCCGCGNCCGCGCACCNGGGATTTNCAATANGCNGGCANTGGCAAA
+          </datablock>
+        </sample>
+      </individual>
+      <individual name="R23-2">
+        <sample name="R23-2_0">
+          <datablock type="SNP">
+            CAGTNTNCCTCAGACAACGCACATCGCNNCTTGCGACCTCANACTGTGNTAGTGCATCGTAGATTCNGAGTCNGCATGAANTATCAGG
+          </datablock>
+        </sample>
+      </individual>
+      <individual name="R23-86">
+        <sample name="R23-86_0">
+          <datablock type="SNP">
+            CAGTNTNCCTCAGACAACGCACATCGCNNCTTGCGTCCTTANGCCGCGNCCGCGCACCCGGGATTTNCAATANGCAGGCCNTGGCAAA
+          </datablock>
+        </sample>
+      </individual>
+      <individual name="R24-87">
+        <sample name="R24-87_0">
+          <datablock type="SNP">
+            CAGCNTNTGCTACACAATACACAGCACNNCTTGCGTCCTTANACTGTGNTAGTGCATCGTAGATTCNGAGTCNGCCTGAANTATCAGG
+          </datablock>
+        </sample>
+      </individual>
+      <individual name="R24-88">
+        <sample name="R24-88_0">
+          <datablock type="SNP">
+            CAGCNTNTGCTACACAATACACAGCACNNCTTGCGTCCTTANGCCGCGNCCGCGCACCCGGGATTTNCAATANGCAGGCANTGGCAAA
+          </datablock>
+        </sample>
+      </individual>
+    </population>
+    <population name="jackson">
+      <individual name="J01-1">
+        <sample name="J01-1_0">
+          <datablock type="SNP">
+            CAGTNTNCCTCAGACAACGCACATCGCNNCTTGCGACCTCANACTGTGNTAGTGCATCGTAGATTCNGAGTCNGCATGAANTATCAGG
+          </datablock>
+        </sample>
+      </individual>
+      <individual name="J01-3">
+        <sample name="J01-3_0">
+          <datablock type="SNP">
+            CAGTNTNTCTCACACAACGCACATAGCNNCTCACGTCTTTANACTGTGNTAGTGCATCGTAGATTCNGAGTCNGCCTGAANTATCAGG
+          </datablock>
+        </sample>
+      </individual>
+      <individual name="J02-3">
+        <sample name="J02-3_0">
+          <datablock type="SNP">
+            CAGTNTNTCTCACACAACGCACATAGCNNCTCACGTCTTTANACTGTGNTAGTGCATCGTAGATTCNGAGTCNGCCTGAANTATCAGG
+          </datablock>
+        </sample>
+      </individual>
+      <individual name="J02-57">
+        <sample name="J02-57_0">
+          <datablock type="SNP">
+            CCGTNTNTGCCACACAATACACAGCGGNNCTTGGGACCCTANGCCACGNTCGCGCACCGGGGGTTCNCGATANGCAGGCANTGGCAGA
+          </datablock>
+        </sample>
+      </individual>
+      <individual name="J03-8">
+        <sample name="J03-8_0">
+          <datablock type="SNP">
+            CAGTNCNCGCCACACAACGCGCAGCGCNNCTTGCGACCCTANGCCACANTCGCGTACCGGGGGTTCNCGATCNGCAGGCANTGGCAGA
+          </datablock>
+        </sample>
+      </individual>
+      <individual name="J03-17">
+        <sample name="J03-17_0">
+          <datablock type="SNP">
+            CCGTNTNTGCCACACAATACACAGCGCNNCCTGCGTCTTTANACTGTGNTAGTGCATCGTAGATTCNGAATCNGCATGAANTATCAGG
+          </datablock>
+        </sample>
+      </individual>
+      <individual name="J04-18">
+        <sample name="J04-18_0">
+          <datablock type="SNP">
+            CAATNTNTCTCACACAACGCACATCGCNNCTTGCGAGCTTANGCCGCGNNCGCGCACCCGGGATTTNCAATANGCAGGCANTGGCAAA
+          </datablock>
+        </sample>
+      </individual>
+      <individual name="J04-25">
+        <sample name="J04-25_0">
+          <datablock type="SNP">
+            CAGTNTNCCTCACACAACGCACATCGCNNCTTGCGACCTTANGCCGCGNNCGCGCACCCGGGATTTNCAATANGCAGGCANTGGCAAA
+          </datablock>
+        </sample>
+      </individual>
+      <individual name="J05-43">
+        <sample name="J05-43_0">
+          <datablock type="SNP">
+            CAGTNTNCCTCAGACAACGCACATCGCNNCTTGCGTCTTTANACTGTGNTAGTGCATCGTAGATTCNGAATCNGCATGAANTGTCAGG
+          </datablock>
+        </sample>
+      </individual>
+      <individual name="J05-45">
+        <sample name="J05-45_0">
+          <datablock type="SNP">
+            CAGCNTNTCTCACACAACGCACAGCGCNNCTTGCGACCTTTNGCCGCGNTCGCGCACCGGGGATTCNGAATCNTCAGGCANCGGCAGG
+          </datablock>
+        </sample>
+      </individual>
+    </population>
+    </region>
+  </data>
+</lamarc>

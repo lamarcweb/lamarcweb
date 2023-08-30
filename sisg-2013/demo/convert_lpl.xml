@@ -1,0 +1,40 @@
+<lamarc-converter-cmd>
+    <regions>
+        <region>
+            <name>LPL</name>
+            <effective-popsize>1</effective-popsize>
+            <segments>
+                <segment datatype="snp">
+                    <name>hotinmiddle</name>
+                    <markers>88</markers>
+                    <first-position-scanned>0</first-position-scanned>
+                    <map-position>0</map-position>
+                    <length>9731</length>
+                    <locations>
+105 109 144 324 342 478 550 735 1215 1219 1285 1546 1570 1755 1827 1938 1960
+2130 2499 2588 2618 2637 2848 2986 2995 3021 3247 3289 3296 3552 3608 3722
+3842 4015 4201 4342 4345 4417 4425 4508 4575 4822 4871 4906 4934 5084 5167
+5370 5394 5440 5553 5559 5686 6175 6195 6202 6249 6282 6594 6677 6717 6759
+6771 6792 6839 6862 6938 7311 7340 7356 7409 7750 8084 8085 8281 8288 8389
+8498 8529 8533 8534 8640 8751 8848 9036 9398 9708 9717 </locations>
+                </segment>
+            </segments>
+        </region>
+    </regions>
+    <populations>
+        <population>north karelia</population>
+        <population>rochester</population>
+        <population>jackson</population>
+    </populations>
+    <infiles>
+        <infile format="migrate" datatype="snp" sequence-alignment="sequential">
+            <name>lpl.mig</name>
+            <population-matching type="byList">
+               <population-name>jackson</population-name>
+               <population-name>north karelia</population-name>
+               <population-name>rochester</population-name>
+            </population-matching>
+            <segments-matching type="single">hotinmiddle</segments-matching>
+        </infile>
+    </infiles>
+</lamarc-converter-cmd>
